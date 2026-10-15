@@ -15,7 +15,7 @@ npm run dev     # http://localhost:5174
 npm test        # automated checks
 npm run build   # static site in dist/
 ```
-Needs Node.js (LTS) and internet (Tailwind CDN, fonts, map, relays). Location needs `https://` or `localhost`.
+Needs Node.js (LTS) and internet (fonts, map, relays). Location needs `https://` or `localhost`.
 To try a whole ride, run both apps and sign in with a different account in each.
 
 ## Try it on an iPhone (no Apple Developer Program)
