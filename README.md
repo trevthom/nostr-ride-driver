@@ -1,7 +1,7 @@
 # NostrRide Driver app 🚗⚡
 
 The **driver** half of NostrRide, a decentralized ridesharing system on **Nostr**. The rider pays the driver in **ecash** (Cashu)
-as the ride runs; **Lightning** and **NWC** fill and empty the ecash wallet. No central server, no database. Uber-Driver-style: GO online, incoming request cards, accept, navigate to pickup, arrive (within 50 m) / start code / finish the ride, ecash earnings.
+as the ride runs; **Lightning** and **NWC** fill and empty the ecash wallet. No central server, no database. Uber-Driver-style: GO online, incoming request cards, accept, navigate to pickup, arrive (within 150 m) / start code / finish the ride, ecash earnings.
 
 The other half is in its own repository: **nostr-ride-rider**. The two apps only talk through
 Nostr relays, so they can be deployed separately.
