@@ -19,10 +19,13 @@ import AppearanceSection from "../../features/profile/AppearanceSection.jsx";
 import WalletSection from "../../features/profile/WalletSection.jsx";
 import VouchesSection from "../../features/profile/VouchesSection.jsx";
 import EcashSection from "../../features/ecash/EcashSection.jsx";
+import UnitsSection from "../../features/profile/UnitsSection.jsx";
+import { useUnits, distanceIn, milesFrom } from "../../lib/units.js";
 import CurrencySection from "../../features/profile/CurrencySection.jsx";
 import KeysSection from "../../features/profile/KeysSection.jsx";
 import Icon from "../../ui/Icon.jsx";
 import Fold from "../../ui/Fold.jsx";
+import BackupSection from "../../features/profile/BackupSection.jsx";
 import { RecoveryFold, RecoveryNotice } from "../../features/ecash/RecoverySection.jsx";
 
 const GENDERS = [["", "Not set"], ["female", "Female"], ["male", "Male"]];
@@ -30,6 +33,7 @@ const GENDERS = [["", "Not set"], ["female", "Female"], ["male", "Male"]];
 export default function AccountScreen() {
   const { user } = useApp();
   const { driveReady, activeDrive, radius, setRadius, alerts, setAlerts } = useDriver();
+  const [units] = useUnits();
   const onRide = !!activeDrive; // rates and the mint are frozen while a ride runs
   const save = useSaveProfile();
   const gaps = driveGaps(user);
@@ -62,9 +66,11 @@ export default function AccountScreen() {
           </Fold>
           <Fold id="appearance" title="Appearance"><AppearanceSection /></Fold>
           <Fold id="currency" title="Currency"><CurrencySection /></Fold>
+          <Fold id="units" title="Units"><UnitsSection /></Fold>
           <Fold id="rates" title="Your rates"><TypicalFareSection rates={user.rates} onSave={(rates) => save({ rates })} locked={onRide} /></Fold>
           <Fold id="ecash" title="Ecash wallet"><EcashSection locked={onRide} /></Fold>
           <RecoveryFold />
+          <Fold id="backup" title="Backup"><BackupSection /></Fold>
 
           <Fold id="gender" title="Gender (optional)">
             <p className="text-sm text-neutral-500 mb-2">
@@ -87,10 +93,10 @@ export default function AccountScreen() {
                   <p className="font-medium">Request radius</p>
                   <p className="text-sm text-neutral-500">Only show pickups this close.</p>
                 </div>
-                <input aria-label="Request radius in miles" type="number" min="1" max="100" value={radius}
-                  onChange={(e) => setRadius(Math.min(100, Math.max(1, parseInt(e.target.value, 10) || 1)))}
+                <input aria-label={`Request radius in ${units === "km" ? "kilometers" : "miles"}`} type="number" min="1" max={units === "km" ? 160 : 100} value={Math.round(distanceIn(radius, units))}
+                  onChange={(e) => setRadius(Math.min(100, Math.max(1, Math.round(milesFrom(parseInt(e.target.value, 10) || 1, units)))))}
                   className={`${inputCls} !w-20 text-center`} />
-                <span className="text-sm text-neutral-500">mi</span>
+                <span className="text-sm text-neutral-500">{units}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex-1">
