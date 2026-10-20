@@ -17,7 +17,6 @@ import { driveGaps, gapsText } from "../../lib/profile.js";
 import AppearanceSection from "../../features/profile/AppearanceSection.jsx";
 import VouchesSection from "../../features/profile/VouchesSection.jsx";
 import WalletsSection from "../../features/profile/WalletsSection.jsx";
-import UnitsSection from "../../features/profile/UnitsSection.jsx";
 import { useUnits, distanceIn, milesFrom } from "../../lib/units.js";
 import KeysSection from "../../features/profile/KeysSection.jsx";
 import Icon from "../../ui/Icon.jsx";
@@ -58,7 +57,6 @@ export default function AccountScreen() {
             />
           </Fold>
           <Fold id="appearance" title="Appearance"><AppearanceSection /></Fold>
-          <Fold id="units" title="Units"><UnitsSection /></Fold>
           <Fold id="rates" title="Your rates"><TypicalFareSection rates={user.rates} onSave={(rates) => save({ rates })} locked={onRide} /></Fold>
           <Fold id="ecash" title="Wallets"><WalletsSection locked={onRide} /></Fold>
           <RecoveryFold />
