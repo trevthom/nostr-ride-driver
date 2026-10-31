@@ -2,7 +2,7 @@
   "name": "nostrride-heartbeat",
   "version": "0.1.0",
   "private": true,
-  "description": "A native metronome into the page: while the app runs in the background it wakes the rider's payment loop, so a pocketed phone keeps paying the ride's ticks. It never touches the wallet, the keys or the coins.",
+  "description": "A native metronome into the page: it can wake a throttled page while the app runs in the background. It never touches the wallet, the keys or the coins. The driver app does not currently call it.",
   "license": "UNLICENSED",
   "homepage": "https://github.com/trevthom/nostr-ride-driver",
   "files": [

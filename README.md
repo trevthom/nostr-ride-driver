@@ -6,7 +6,6 @@ as the ride runs. There is no central server and no database. Uber-Driver-style:
 The other half is in its own repository: **nostr-ride-rider**. The two apps only talk through Nostr relays,
 so they can be deployed separately.
 
-
 ## Run it
 ```bash
 npm install

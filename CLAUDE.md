@@ -15,7 +15,7 @@ The driver app is developed here.
 - `src/app/App.jsx` — the shell: one role provider and its three tabs.
 - `src/state/AppContext.jsx` — the shared key, profile, wallet, relays and settings.
 - `src/driver/` — this app's screens and state.
-- `src/features/`, `src/lib/`, `src/nostr/`, `src/ui/` — shared code.
+- `src/features/`, `src/lib/`, `src/nostr/`, `src/ui/` — code used by the driver screens.
 
 ## Rules
 - Develop the driver app here. The rider app is a separate repository (`nostr-ride-rider`).

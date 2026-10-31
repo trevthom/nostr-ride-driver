@@ -20,7 +20,7 @@ not as a release.
 | Orientation | iPhone portrait only; iPad all |
 | Icons | `App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` — 1024×1024, no alpha (the App Store rejects an icon with an alpha channel) |
 | Splash | white with the app mark, in `Assets.xcassets/Splash.imageset` |
-| Plugins | `@capacitor-community/background-geolocation` and the local `nostrride-heartbeat` (`../plugins/heartbeat`), both in `Podfile` (CocoaPods) |
+| Plugins | `@capacitor-community/background-geolocation` and the local `nostrride-heartbeat` (`../plugins/heartbeat`), both in `Podfile` (CocoaPods); the driver app does not call the heartbeat |
 
 The icon and splash are generated from `../resources/icon.png` / `../resources/icon-foreground.png`,
 which come from the bolt mark in `public/icon.svg`. Replace those masters and

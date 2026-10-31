@@ -16,7 +16,7 @@ native/
   capacitor.config.json   appId app.nostrride, name NostrRide, webDir ../dist
   package.json            Capacitor ^6.2.2 + @capacitor-community/background-geolocation
                           + nostrride-heartbeat (file:./plugins/heartbeat)
-  plugins/heartbeat/      a native timer that can wake a throttled page, in Swift and Kotlin
+  plugins/heartbeat/      a native timer bundled with the shell (unused by the driver app)
   resources/              icon + splash masters (from public/icon.svg)
   ios/                    the Xcode project — see ios/README.md to build and sign it
   android/                the Gradle project — build an APK here
@@ -24,8 +24,8 @@ native/
 
 > **Status: the iOS project and its Swift plugin have never been compiled** (they were written on Linux;
 > there is no Xcode here). The Android APK builds, with the Kotlin plugin compiled in and registered.
-> Neither shell has been run on a phone: real background behaviour — battery, the OS prompts, whether
-> the page keeps running with the screen off, whether a beat really wakes it — must be tried on a device.
+> Neither shell has been run on a phone: real background behaviour — battery, the OS prompts and
+> whether the page keeps running with the screen off — must be tried on a device.
 
 > **Capacitor 6.2.2 or newer, never lower.** `package.json` asks for `^6.2.2` on purpose:
 > `@capacitor/*` 6.0.0–6.2.1 have **CVE-2026-103922** (a malicious link can load remote
@@ -95,8 +95,6 @@ during a trip. Say exactly that — it has to stay true.
 
 - Location comes from the background watcher, with a persistent notification on Android.
 - A location is sent to the rider on each fix (at most every 5 s), not on a timer the OS may pause.
-- A native timer (`plugins/heartbeat`) can wake a throttled page while a ride runs; it holds no
-  key, no coin and no signing.
 - The screen wake lock and the service worker are skipped.
 
 ## The platform projects
