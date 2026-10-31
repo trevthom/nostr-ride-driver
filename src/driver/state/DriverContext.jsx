@@ -95,7 +95,7 @@ export function DriverProvider({ children }) {
   useEffect(() => { gpsRef.current = gps; }, [gps]);
 
   // ── Settings (saved on this device; the same hook the Account screen reads) ──
-  const { radius, setRadius, alerts, setAlerts } = useDriverPrefs();
+  const { radius, setRadius, alerts, setAlerts, avoidTolls, setAvoidTolls } = useDriverPrefs();
 
   // Demo riders and requests (development builds only; never sent to relays).
   useEffect(() => { seedDemoData(); refreshData(); }, [refreshData]);
@@ -495,7 +495,7 @@ export function DriverProvider({ children }) {
   const value = {
     driveReady, myPosition, geoError, gps,
     online, goOnline, goOffline,
-    radius, setRadius, alerts, setAlerts,
+    radius, setRadius, alerts, setAlerts, avoidTolls, setAvoidTolls,
     open, decline, skip, skipped,
     activeDrive, pending, receipt, dismissReceipt, odo, agreed, driveMoney, tripMiles,
     share, startShare, stopShare, shareUpdate, shareUrl,

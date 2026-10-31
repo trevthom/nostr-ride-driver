@@ -62,8 +62,8 @@ export default function AutoCashOutField() {
         {ready
           ? `When your ecash reaches this amount, the app sends all of it to ${pinned}.${IS_DRIVER_APP ? "" : " Add funds again before your next ride."} Leave it empty to turn this off.`
           : state === "changed" || state === "unconfirmed"
-            ? "Confirm your cash out location below first. Automatic cash out waits until you do."
-            : "Set a cash out location (a Lightning address) first."}
+            ? "Confirm your cash out location above first. Automatic cash out waits until you do."
+            : "Set a cash out location (a Lightning address) above first."}
         {ready && saved && price ? ` That is about ${satsFromFiat(saved.amount, price).toLocaleString()} sats.` : ""}
       </p>
       {note && <p className="text-xs text-neutral-700 mt-1" role="status">{note}</p>}

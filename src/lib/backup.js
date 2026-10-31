@@ -3,7 +3,7 @@
 //  secret key can open (nip44 to their own key, so the nsec is the only thing to remember). A new phone that logs in with the
 //  nsec gets everything back. Relays see that a note exists, its size and when it changed: nothing inside.
 //
-//  What goes in (BACKUP_KEYS): the block list, trusted contacts, currency, units, dark mode (application and map), request radius / alerts, gender
+//  What goes in (BACKUP_KEYS): the block list, private notes on vouches, trusted contacts, currency, units, dark mode (application and map), request radius / alerts / tolls, gender
 //  preference, the amount unit, the chosen mint, the relay list, "automatically cash out at", the on-chain deposit addresses
 //  (quote ids and numbers only: a deposit sent to an address stays claimable on a new phone) and the vouch list. What NEVER goes in: ecash (its own 12 words), keys, the outbox, prices, trip leftovers, open/closed sections.
 //  Pure maths and storage; the sending is state/useBackup.js.
@@ -22,7 +22,7 @@ import { getSetting, setSetting, getRelays, setRelays } from "../config/relays.j
 import { EVENT_KINDS } from "../nostr/eventKinds.js";
 import { vouchList } from "./vouches.js";
 
-export const BACKUP_KEYS = ["blocked", "trustedContacts", "currency", "units", "dark", "darkMap", "requestRadius", "requestAlerts", "genderPref", "amountUnit", "ecashMint"];
+export const BACKUP_KEYS = ["blocked", "vouchNotes", "trustedContacts", "currency", "units", "dark", "darkMap", "requestRadius", "requestAlerts", "avoidTolls", "genderPref", "amountUnit", "ecashMint"];
 export const BACKUP_PREFIXES = ["autoCashOut_", "onchain_"]; // onchain_<pk16>: deposit addresses (ids and numbers, no key, no coin)
 const HEX64 = /^[0-9a-f]{64}$/;
 export const MAX_BACKUP_BYTES = 60000; // one nip44 message holds 64 KB

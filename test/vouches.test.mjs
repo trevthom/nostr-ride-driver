@@ -35,6 +35,14 @@ assert.match(V.parsePubkey("hello").error, /not an npub/);
 assert.ok(V.parsePubkey("").error);
 assert.ok(V.parsePubkey(null).error);
 
+// ── Private notes stay out of the public list event ──
+const noteKey = pk("c1");
+assert.deepEqual(V.setVouchNote({}, noteKey, "  met at the co-op  "), { [noteKey]: "met at the co-op" });
+assert.deepEqual(V.setVouchNote({ [noteKey]: "old" }, noteKey, ""), {}, "an empty note removes the key");
+assert.equal(V.setVouchNote({}, noteKey, "x".repeat(400))[noteKey].length, 300, "notes are capped");
+assert.deepEqual(V.setVouchNote({}, "not-a-key", "x"), {}, "an invalid key changes nothing");
+assert.equal(JSON.stringify(V.vouchEvent([noteKey])).includes("met at"), false, "notes never enter the public event");
+
 // ── The list event ──
 const ev = V.vouchEvent([pk("c1"), pk("c1"), "nothex", pk("c2"), 5]);
 assert.equal(ev.kind, K.VOUCH_LIST);

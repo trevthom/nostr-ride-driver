@@ -54,7 +54,7 @@ const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 export default function DriveTrip({ request }) {
   const { user, liveTick, pushNotice } = useApp();
-  const { myPosition, gps, arrive, startTrip, finishRide, answerPickup, answerStop, odo, agreed, driveMoney, share, shareUpdate } = useDriver();
+  const { myPosition, gps, arrive, startTrip, finishRide, answerPickup, answerStop, odo, agreed, driveMoney, share, shareUpdate, avoidTolls } = useDriver();
   const { btcPrice } = useApp();
   const stage = rideStage(request);
   const exact = exactTrip(request, user);
@@ -126,7 +126,7 @@ export default function DriveTrip({ request }) {
   // The line always starts at the car, so it shows what is LEFT of the trip (through the stops still ahead).
   const ahead = [...stops.slice(passed), dropoff];
   const route = myPosition ? [{ lat: r3(myPosition.lat), lng: r3(myPosition.lng) }, ...(stage === "riding" ? ahead : [pickup])] : stage === "riding" ? [pickup, ...stops, dropoff] : null;
-  const navUrl = exact ? `https://www.google.com/maps/dir/?api=1&destination=${target.lat},${target.lng}&travelmode=driving` : null;
+  const navUrl = exact ? `https://www.google.com/maps/dir/?api=1&destination=${target.lat},${target.lng}&travelmode=driving${avoidTolls ? "&avoid=tolls" : ""}` : null;
 
   // Close to where the next step happens? Suggest it (never done for the driver).
   // Only with the exact address: the approximate area can be a kilometer off.
@@ -196,6 +196,7 @@ export default function DriveTrip({ request }) {
           dropoff={dropoff}
           route={route}
           onRoute={setRouteInfo}
+          avoidTolls={avoidTolls}
           cars={myPosition ? [{ pubkey: "me", lat: myPosition.lat, lng: myPosition.lng }] : []}
           fitKey={`${request.id}|${stage}|${myPosition ? "pos" : "nopos"}`}
           padBottom={390}
@@ -275,6 +276,11 @@ export default function DriveTrip({ request }) {
         {!exact && (
           <p className="text-sm text-amber-700 bg-amber-50 rounded-xl px-3 py-2 mt-3">
             Showing the approximate area. The exact address arrives with the rider's confirmation. This can take a moment.
+          </p>
+        )}
+        {avoidTolls && routeInfo?.tollFree === false && (
+          <p className="text-sm text-amber-700 bg-amber-50 rounded-xl px-3 py-2 mt-3" role="status">
+            Toll-free routing is unavailable right now, so this route may include tolls.
           </p>
         )}
 

@@ -14,14 +14,15 @@ import { getProfile } from "../../nostr/profiles.js";
 import { shortNpub } from "../../nostr/keys.js";
 import { parsePubkey, vouchEvent, vouchList, MAX_VOUCHES } from "../../lib/vouches.js";
 import { SectionLabel, inputCls } from "../../ui/Parts.jsx";
+import { PrivateNote } from "./ProfileParts.jsx";
 import Avatar from "../../ui/Avatar.jsx";
 import Button from "../../ui/Button.jsx";
 
 export default function VouchesSection() {
-  const { user, publish, refreshVouches, liveTick } = useApp();
+  const { user, publish, refreshVouches, liveTick, vouchNotes, setVouchNote } = useApp();
   const [text, setText] = useState("");
   const [error, setError] = useState("");
-  const [note, setNote] = useState("");
+  const [status, setStatus] = useState("");
   const [, redraw] = useState(0);
   void liveTick; // the names arrive from the relays after the list is shown
   const list = vouchList(user.publicKey);
@@ -30,11 +31,11 @@ export default function VouchesSection() {
   // once (publish stores it before it sends it), so the screen is right whether or not a relay answers.
   const change = (fn) => {
     const ev = vouchEvent(fn(vouchList(user.publicKey)));
-    setNote("");
+    setStatus("");
     const sent = publish(ev.kind, ev.content, ev.tags);
     redraw((n) => n + 1);
     Promise.resolve(sent).then((ok) => {
-      if (ok === false) setNote("Saved on this phone. It reaches the relays when they answer.");
+      if (ok === false) setStatus("Saved on this phone. It reaches the relays when they answer.");
       else refreshVouches();
     }).catch(() => {});
   };
@@ -49,7 +50,7 @@ export default function VouchesSection() {
     relay.fetchProfile(r.pubkey);
     change((l) => (l.includes(r.pubkey) ? l : [...l, r.pubkey]));
   };
-  const remove = (pk) => change((l) => l.filter((x) => x !== pk));
+  const remove = (pk) => { change((l) => l.filter((x) => x !== pk)); setVouchNote(pk, ""); };
 
   return (
     <section>
@@ -65,7 +66,7 @@ export default function VouchesSection() {
         <Button size="md" full={false} className="px-4" onClick={add} disabled={!text.trim()}>Add</Button>
       </div>
       {error && <p className="text-red-600 text-xs mt-2" role="alert">{error}</p>}
-      {note && <p className="text-neutral-600 text-xs mt-2" role="status">{note}</p>}
+      {status && <p className="text-neutral-600 text-xs mt-2" role="status">{status}</p>}
       {list.length === 0 ? (
         <p className="text-neutral-500 text-sm mt-3">You do not vouch for anyone yet.</p>
       ) : (
@@ -74,13 +75,16 @@ export default function VouchesSection() {
             const p = getProfile(pk);
             const name = p?.name || shortNpub(pk);
             return (
-              <li key={pk} className="flex items-center gap-3 py-2 border-b border-neutral-100">
-                <Avatar src={p?.picture} name={name} size={36} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[15px] font-medium truncate">{name}</p>
-                  {p?.name && <p className="text-[11px] text-neutral-500 font-mono truncate">{shortNpub(pk)}</p>}
+              <li key={pk} className="py-3 border-b border-neutral-100">
+                <div className="flex items-center gap-3">
+                  <Avatar src={p?.picture} name={name} size={36} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-medium truncate">{name}</p>
+                    {p?.name && <p className="text-[11px] text-neutral-500 font-mono truncate">{shortNpub(pk)}</p>}
+                  </div>
+                  <button type="button" aria-label={`Remove ${name}`} onClick={() => remove(pk)} className="text-sm font-medium underline">Remove</button>
                 </div>
-                <button type="button" aria-label={`Remove ${name}`} onClick={() => remove(pk)} className="text-sm font-medium underline">Remove</button>
+                <PrivateNote name={name} note={(vouchNotes || {})[pk] || ""} onSave={(text) => setVouchNote(pk, text)} />
               </li>
             );
           })}

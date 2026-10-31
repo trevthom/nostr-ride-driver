@@ -4,8 +4,9 @@
 //    2. Ecash wallet   Create New Wallet or Restore (until there is a wallet on this device), then the balance with Add funds
 //                      (Lightning or on-chain) and Send (an ecash token or a Lightning payment), the mint, ...
 //       then, inside it (EcashSection takes it as a child):
-//    3. Cash out location   the Lightning address (`lud16` in the profile, kind 0). It is the same in both apps. Saving it here also
-//                           PINS it on this device: money is sent only to the pinned address (lib/cashoutto.js, features/ecash/CashOutConfirm.jsx).
+//    3. Cash out location   the Lightning address (`lud16` in the profile, kind 0), with "Automatically cash out at" under it.
+//                           Saving the address also PINS it on this device: money is sent only to the pinned address
+//                           (lib/cashoutto.js, features/ecash/CashOutConfirm.jsx).
 //    4. Recovery phrase     the 12 words of the ecash wallet (they ARE the money: write them down, show them again).
 // ════════════════════════════════════════════════════════════
 
@@ -15,6 +16,7 @@ import CurrencySection from "./CurrencySection.jsx";
 import LightningAddressSection from "./LightningAddressSection.jsx";
 import { useSaveProfile } from "./ProfileParts.jsx";
 import EcashSection from "../ecash/EcashSection.jsx";
+import AutoCashOutField from "../ecash/AutoCashOutField.jsx";
 import CashOutConfirm from "../ecash/CashOutConfirm.jsx";
 import { RecoveryPanel } from "../ecash/RecoverySection.jsx";
 import { setCashOutTo } from "../../lib/cashoutto.js";
@@ -34,7 +36,9 @@ export default function WalletsSection({ locked = false }) {
           <EcashSection locked={locked}>
             <div className="mt-6">
               <SubTitle>Cash out location</SubTitle>
-              <LightningAddressSection value={user.lud16 || ""} onSave={(lud16) => { setCashOutTo(user.publicKey, lud16); save({ lud16 }); }} />
+              <LightningAddressSection value={user.lud16 || ""} onSave={(lud16) => { setCashOutTo(user.publicKey, lud16); save({ lud16 }); }}>
+                <AutoCashOutField />
+              </LightningAddressSection>
               <CashOutConfirm />
             </div>
           </EcashSection>

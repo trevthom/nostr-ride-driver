@@ -33,6 +33,7 @@ import { loadSession, saveSession, clearSession, saveView, loadView } from "../l
 import { APP_NAME } from "../config/app.js";
 import { getSetting, setSetting, reconnectAll } from "../config/relays.js";
 import { addBlock, removeBlock, isBlocked, setBlockNote as saveBlockNote } from "../lib/blocks.js";
+import { setVouchNote as saveVouchNote } from "../lib/vouches.js";
 import { showSystemNotification } from "../lib/notify.js";
 import { PRICE_CODES, PRICE_MAX_AGE_MS, acceptPrices, getCurrency, setCurrency as saveCurrency, onCurrencyChange } from "../lib/currency.js";
 import { FALLBACK_BTC_USD } from "../config/settings.js";
@@ -105,6 +106,9 @@ export function AppProvider({ initialView, children }) {
   const unblockUser = useCallback((pubkey) => setBlocked((l) => { const n = removeBlock(l, pubkey); setSetting("blocked", n); return n; }), []);
   const setBlockNote = useCallback((pubkey, note) => setBlocked((l) => { const n = saveBlockNote(l, pubkey, note); setSetting("blocked", n); return n; }), []);
   const isBlockedPk = useCallback((pubkey) => isBlocked(blocked, pubkey), [blocked]);
+  // Private notes on the people this user vouches for. They never go into the public vouch event.
+  const [vouchNotes, setVouchNotes] = useState(() => getSetting("vouchNotes", {}));
+  const setVouchNote = useCallback((pubkey, note) => setVouchNotes((notes) => { const n = saveVouchNote(notes, pubkey, note); setSetting("vouchNotes", n); return n; }), []);
 
   // The encrypted backup of vouches, blocks and settings (lib/backup.js): checked at login, kept up to date, restored on a new phone.
   useBackup({
@@ -112,6 +116,7 @@ export function AppProvider({ initialView, children }) {
     publish: (...a) => publishRef.current(...a),
     onRestored: () => {
       setBlocked(getSetting("blocked", []));
+      setVouchNotes(getSetting("vouchNotes", {}));
       saveCurrency(getSetting("currency", getCurrency()));
       setUnits(getUnits());
       applyAppearance();
@@ -510,6 +515,8 @@ export function AppProvider({ initialView, children }) {
     blockUser,
     unblockUser,
     setBlockNote,
+    vouchNotes,
+    setVouchNote,
     isBlockedPk,
     liveTick,
   };

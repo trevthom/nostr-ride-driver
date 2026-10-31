@@ -18,6 +18,7 @@
 //    height            fixed pixel height; omit to fill the parent
 //    navigation        trip mode (turns on the props below)
 //    follow            {lat,lng,id} the vehicle to follow; id = that car's `pubkey`
+//    avoidTolls        ask the router for a toll-free road route (Valhalla); the route info says whether it succeeded
 //  Ref: { fit() } re-centres the view (in trip mode: back on the vehicle).
 //
 //  TRIP MODE (`navigation`): the camera zooms in on the vehicle and follows it, north
@@ -111,7 +112,7 @@ const ptKey = (p) => `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`;
 const valid = (p) => p && Number.isFinite(p.lat) && Number.isFinite(p.lng);
 
 const MapView = forwardRef(function MapView(
-  { pickup, dropoff, route, routeDashed = false, cars, me, pills, onPill, pulse = false, fitKey = "", padBottom = 60, padTop = 70, onRoute, height, navigation = false, follow = null },
+  { pickup, dropoff, route, routeDashed = false, cars, me, pills, onPill, pulse = false, fitKey = "", padBottom = 60, padTop = 70, onRoute, height, navigation = false, follow = null, avoidTolls = false },
   ref
 ) {
   const boxRef = useRef(null);
@@ -312,17 +313,17 @@ const MapView = forwardRef(function MapView(
       let latlngs = route.map((p) => [p.lat, p.lng]);
       let info = null;
       try {
-        const r = await getDrivingRoute(route);
+        const r = await getDrivingRoute(route, { avoidTolls });
         if (r?.coordinates?.length) {
-          latlngs = r.coordinates.map((c) => [c[1], c[0]]); // OSRM is [lng,lat]
-          info = { miles: metersToMiles(r.distanceMeters), minutes: Math.max(1, Math.round(r.durationSeconds / 60)), straight: false };
+          latlngs = r.coordinates.map((c) => [c[1], c[0]]); // routers return [lng,lat]
+          info = { miles: metersToMiles(r.distanceMeters), minutes: Math.max(1, Math.round(r.durationSeconds / 60)), straight: false, tollFree: r.tollFree };
         }
       } catch { /* fall back to a straight line */ }
       if (mine !== reqId.current || !layers.current.route) return;
       if (!info) {
         let miles = 0;
         for (let i = 1; i < route.length; i++) miles += haversineDistance(route[i - 1].lat, route[i - 1].lng, route[i].lat, route[i].lng);
-        info = { miles: miles * 1.3, minutes: Math.max(1, Math.round((miles * 1.3 / 24) * 60)), straight: true };
+        info = { miles: miles * 1.3, minutes: Math.max(1, Math.round((miles * 1.3 / 24) * 60)), straight: true, tollFree: avoidTolls ? false : undefined };
       }
       try {
         L.polyline(latlngs, { color: "#fff", weight: routeDashed ? 8 : 9, opacity: 0.9, lineCap: "round" }).addTo(g);
@@ -333,7 +334,7 @@ const MapView = forwardRef(function MapView(
       setRouteTick((t) => t + 1);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routeKey, routeDashed]);
+  }, [routeKey, routeDashed, avoidTolls]);
 
   // Re-fit when asked to (fitKey), once a new route has been drawn, and when
   // the sheet over the map changes size by a real amount.

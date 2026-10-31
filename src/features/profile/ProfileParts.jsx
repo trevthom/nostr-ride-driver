@@ -12,6 +12,7 @@ import { buildSignedEvent } from "../../nostr/events.js";
 import { getMetadata } from "../../nostr/profiles.js";
 import { shortNpub } from "../../nostr/keys.js";
 import { profileContent } from "../../lib/profilecontent.js";
+import { formatPhone } from "../../lib/contact.js";
 import { parsePubkey } from "../../lib/vouches.js";
 import { tripCounts } from "../../lib/rides.js";
 import { useUnits, formatDistance } from "../../lib/units.js";
@@ -168,7 +169,7 @@ export function ContactMethods() {
         <select
           value={platform}
           aria-label="Contact platform"
-          onChange={(e) => setPlatform(e.target.value)}
+          onChange={(e) => { const next = e.target.value; setPlatform(next); if (next === "Phone") setHandle(formatPhone(handle)); }}
           className={`${inputCls} !w-[7.5rem] !px-3`}
         >
           {CONTACT_PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}
@@ -176,9 +177,11 @@ export function ContactMethods() {
         <input
           aria-label="Contact handle or number"
           value={handle}
-          onChange={(e) => setHandle(e.target.value)}
+          onChange={(e) => setHandle(platform === "Phone" ? formatPhone(e.target.value) : e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
-          placeholder="Handle or number"
+          placeholder={platform === "Phone" ? "(555) 123-4567" : "Handle or number"}
+          inputMode={platform === "Phone" ? "tel" : "text"}
+          maxLength={platform === "Phone" ? 14 : undefined}
           className={`${inputCls} min-w-0`}
         />
         <Button size="md" full={false} onClick={add} disabled={!handle.trim()} className="px-4">Add</Button>
@@ -238,7 +241,7 @@ export function BlockedSection() {
                   <span className="text-[15px] truncate">{name}</span>
                   <button type="button" onClick={() => unblockUser(b.pubkey)} className="text-sm font-medium underline shrink-0">Unblock</button>
                 </div>
-                <BlockNote name={name} note={b.note || ""} onSave={(note) => setBlockNote(b.pubkey, note)} />
+                <PrivateNote name={name} note={b.note || ""} onSave={(note) => setBlockNote(b.pubkey, note)} />
               </li>
             );
           })}
@@ -248,9 +251,9 @@ export function BlockedSection() {
   );
 }
 
-// A note the person keeps about someone they blocked. It stays with the block list (and the encrypted settings backup),
-// and is saved when the field loses focus or Enter is pressed.
-function BlockNote({ name, note, onSave }) {
+// A private note kept about a blocked person or someone you vouch for. It stays on this device and in the encrypted
+// settings backup, and is saved when the field loses focus or Enter is pressed.
+export function PrivateNote({ name, note, onSave }) {
   const [draft, setDraft] = useState(note);
   const [saved, setSaved] = useState(false);
   useEffect(() => setDraft(note), [note]);

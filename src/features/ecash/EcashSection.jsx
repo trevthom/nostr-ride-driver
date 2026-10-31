@@ -8,7 +8,7 @@
 //    • paste an ecash token to add it to the wallet
 //    • back up the wallet as tokens (ecash is cash: whoever holds a token owns it)
 //    (the 12-word recovery phrase that brings the ecash back on a new phone is its own Account part: RecoverySection.jsx)
-//    • Cash out (a tap) and "Automatically cash out at: $" (AutoCashOutField, runs in useAutoCashOut) in both apps. Both send to the cash out address PINNED
+//    • Cash out (a tap) in both apps, and "Automatically cash out at: $" under the cash out location (AutoCashOutField, runs in useAutoCashOut). Both send to the cash out address PINNED
 //      on this device (lib/cashoutto.js). Nothing asks the person to confirm an address.
 //    • Send ecash (SendEcash): a token for another ecash wallet, or a Lightning invoice / address
 //    • Disconnect ecash from this device: the coins and the recovery phrase are erased HERE (nothing is swapped); the money stays at the mint and
@@ -29,7 +29,6 @@ import { cleanMintUrl, mintLabel } from "../../lib/mints.js";
 import { requestInvoice, isLightningAddress } from "../../lib/lnurl.js";
 import AddFunds from "../payments/AddFunds.jsx";
 import SendEcash from "./SendEcash.jsx";
-import AutoCashOutField from "./AutoCashOutField.jsx";
 import { getMyMint, setMyMint } from "./myMint.js";
 import WalletStart from "./WalletStart.jsx";
 import { useCashOutTo } from "./useCashOutTo.js";
@@ -141,6 +140,7 @@ export default function EcashSection({ locked = false, children = null }) {
           <div className="rounded-2xl bg-neutral-100 p-5">
             <p className="text-neutral-500 text-xs">Balance</p>
             <Money sats={total} stacked className="text-3xl font-bold" />
+            <p className="text-xs text-neutral-500 mt-1">Dollar values are estimates at the current bitcoin price. Your balance is held as bitcoin ecash tokens, so its dollar value can change.</p>
             {Object.entries(balances).map(([url, sats]) => (
               <div key={url} className="flex items-center gap-2 mt-3 text-sm">
                 <span className="flex-1 min-w-0 truncate text-neutral-600">{mintLabel(url)}</span>
@@ -155,8 +155,6 @@ export default function EcashSection({ locked = false, children = null }) {
             {total > 0 && !pinned && !user.lud16 && <p className="text-xs text-amber-700 mt-2">Set a cash out location (a Lightning address) below to cash out.</p>}
             {locked && <p className="text-xs text-neutral-500 mt-2">Cash out and sending are paused while a ride is running.</p>}
           </div>
-
-          <AutoCashOutField />
 
           {children}
 

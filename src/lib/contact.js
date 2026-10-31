@@ -6,6 +6,16 @@
 //  `javascript:` link or another site. Returns null when it can't be done.
 // ════════════════════════════════════════════════════════════
 
+// A US-style phone number as it is typed: (555) 014-2222. A leading +1 is dropped; extra digits are ignored.
+export function formatPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  const local = (digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits).slice(0, 10);
+  if (!local) return "";
+  if (local.length < 4) return `(${local}`;
+  if (local.length < 7) return `(${local.slice(0, 3)}) ${local.slice(3)}`;
+  return `(${local.slice(0, 3)}) ${local.slice(3, 6)}-${local.slice(6)}`;
+}
+
 export function contactHref(platform, handle) {
   const h = String(handle || "").trim();
   const digits = h.replace(/[^\d+]/g, "");

@@ -17,6 +17,7 @@
 //    newestVouchEvent(pubkey) the newest list event in the cache (or null)
 //    vouchList(pubkey)       the people `pubkey` vouches for (newest list in the cache)
 //    vouchesToPublish(…)     the list a restored settings backup should publish again (or null)
+//    setVouchNote(notes, pubkey, note)   a private note kept with the list on this device and in the encrypted backup
 //    trustFor(target, me)    { direct, via: [pubkey…] } or null     trustHeadline / trustDetail: the words
 // ════════════════════════════════════════════════════════════
 
@@ -84,6 +85,17 @@ export function vouchesToPublish(current, publicAt, backup, backupAt, me) {
   if (publicAt && backupAt && publicAt * 1000 >= backupAt) return null;
   if (!publicAt && !clean.length) return null;
   return clean;
+}
+
+// A private note about a person you vouch for. It is NOT part of the public list: it stays in the encrypted settings backup
+// and is keyed by pubkey. Trimmed and capped like a block note; an empty note removes the key.
+export function setVouchNote(notes, pubkey, note) {
+  const next = notes && typeof notes === "object" && !Array.isArray(notes) ? { ...notes } : {};
+  if (!HEX64.test(pubkey || "")) return next;
+  const clean = String(note || "").trim().slice(0, 300);
+  if (clean) next[pubkey] = clean;
+  else delete next[pubkey];
+  return next;
 }
 
 // What `me` can say about `target`: { direct: I vouch for them, via: [the people I vouch for who vouch for them] }.

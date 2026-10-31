@@ -41,6 +41,7 @@ export default function WalletStart() {
       </div>
       <p className="text-xs text-neutral-500 mt-3">
         Already have a wallet from another phone? Restore it with its 12 words. Otherwise create a new one.
+        If you use both apps on this phone, keep a separate wallet for each; restoring the same words in the other app moves the balance there.
       </p>
       <ConfirmDialog open={asking} title="Create a new wallet?" confirmLabel="Create wallet" cancelLabel="Not now"
         message="Your wallet is kept on this phone. Its 12 words are the only way to get your money back if you lose the phone, clear the browser or delete the app. You will see the words next. Write them on paper before you add money."
