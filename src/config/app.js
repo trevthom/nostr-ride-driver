@@ -1,9 +1,8 @@
 // ════════════════════════════════════════════════════════════
-//  APP — The one NostrRide app has two faces, Ride and Drive. A person switches between them (src/ui/ModeSwitch.jsx);
-//  `APP_ROLE` is the face on screen right now: "rider" or "driver". It moves with setAppRole(), which the app calls
-//  BEFORE it draws a face (src/app/App.jsx), so a screen that reads `IS_DRIVER_APP` while it draws always sees the
-//  right one. These are live bindings: read them when you draw, never copy them into a constant at module level.
-//  `IS_DRIVER_APP` = the person is PAID in this face (the Drive face). Node tests never call setAppRole, so they get "rider".
+//  APP — The driver app fixes its role at startup: setAppRole("driver") in src/app/App.jsx. `APP_ROLE` is "driver"
+//  while this app runs; Node tests never call setAppRole, so they get "rider". These are live bindings: read them
+//  when you draw, never copy them into a constant at module level.
+//  `IS_DRIVER_APP` = the person is PAID in this app (the driver app).
 // ════════════════════════════════════════════════════════════
 
 /* global __BUILD_ID__ */

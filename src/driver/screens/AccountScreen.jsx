@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-//  ACCOUNT (drive face) — The SAME account screen as the Ride face: every setting is shown whichever face is on.
+//  ACCOUNT (driver app) — The same account screen the rider app shows: every setting is shown whichever app is on.
 //  This wrapper only supplies what the shared screen cannot read here: whether a drive is running (the rates and the
 //  wallet are frozen during one) and the LIVE driver settings from DriverContext (radius, alerts).
 //  See features/profile/AccountScreen.jsx.

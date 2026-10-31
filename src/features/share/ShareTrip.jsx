@@ -3,7 +3,7 @@
 //  start sharing, the live link, Send link, Stop, and the trusted contacts
 //  to text. The link itself is made by nostr/share.js; contacts stay on this
 //  device (lib/safety.js). The ride's owner (rider or driver) supplies the
-//  state from their context, so both faces share exactly the same behaviour.
+//  state from their context, so both apps share exactly the same behaviour.
 // ════════════════════════════════════════════════════════════
 
 import { useState } from "react";

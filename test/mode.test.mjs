@@ -1,4 +1,4 @@
-// The Ride / Drive face of the one app: saved per account, not shared between accounts, and the tab rules.
+// The role and tab helpers shared by the two apps: saved per account, not shared between accounts, and the tab rules.
 import assert from "node:assert/strict";
 
 const mem = new Map();
@@ -41,6 +41,6 @@ A.setAppRole("whatever");
 assert.equal(A.APP_ROLE, "rider", "anything but driver is the rider");
 assert.equal(A.APP_NAME, "NostrRide");
 
-// One person has both faces: a request they wrote is never a drive of their own.
+// One person can use both apps: a request they wrote is never a drive of their own.
 assert.equal(consentedDrive({ id: "x", pubkey: a, tags: [], content: "{}" }, a), false);
 console.log("mode ok");

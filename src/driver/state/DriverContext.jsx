@@ -94,7 +94,7 @@ export function DriverProvider({ children }) {
   useEffect(() => { posRef.current = myPosition; }, [myPosition]);
   useEffect(() => { gpsRef.current = gps; }, [gps]);
 
-  // ── Settings (saved on this device; the same hook the Account screen reads on the Ride face) ──
+  // ── Settings (saved on this device; the same hook the Account screen reads) ──
   const { radius, setRadius, alerts, setAlerts } = useDriverPrefs();
 
   // Demo riders and requests (development builds only; never sent to relays).

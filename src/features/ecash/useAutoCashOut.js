@@ -2,7 +2,7 @@
 //  USE AUTO CASH OUT — Runs in the driver app (DriverContext). When the ecash held at a mint is worth at least the amount the
 //  driver chose (Account → Wallets → "Automatically cash out at"), it is sent to the driver's cash out location by itself.
 //  The money goes to the address PINNED on this device (lib/cashoutto.js), never to a profile address that was changed elsewhere: a changed or
-//  unconfirmed address pauses it and the person is told once. Runs in the Ride and the Drive face.
+//  unconfirmed address pauses it and the person is told once. Runs in both apps.
 //  Rules (lib/autocashout.js): needs a pinned cash out address; waits while a ride is running; after a failure waits 10 minutes
 //  and tells the driver once. Checks when the wallet changes, every 30 s, and when the setting is saved (AUTO_EVENT).
 //  The money move is EcashWallet.cashOut: one move at a time, and a failed payment keeps the ecash.

@@ -1,8 +1,8 @@
 // ════════════════════════════════════════════════════════════
-//  MODE SWITCH — The Ride / Drive switch of the one app. A small pill with two buttons; the face on screen is pressed.
-//  It is drawn at the top of every main screen (Home, Activity / Earnings, Account) and nowhere during a trip.
+//  MODE SWITCH — A Ride / Drive switch kept in the shared code. The driver app mounts no ModeProvider, so this
+//  draws nothing here; the driver tabs live in src/app/App.jsx.
 //
-//    <ModeProvider mode lock warn onSwitch>…</ModeProvider>   the app shell provides it (src/app/App.jsx)
+//    <ModeProvider mode lock warn onSwitch>…</ModeProvider>   shared shell (not mounted by the driver app)
 //    <ModeSwitch />                                            draws nothing outside a ModeProvider
 //
 //  Rules (the shell sets them):

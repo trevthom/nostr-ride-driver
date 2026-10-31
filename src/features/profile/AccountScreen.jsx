@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════
-//  ACCOUNT — ONE account screen for both faces of the app. Every setting is here whichever face is showing (Ride or
-//  Drive): the same person, the same wallet, the same profile. The home screen is a list of rows, and each row opens
+//  ACCOUNT — the driver app's Account screen. Every setting is here: the same person, wallet and profile.
+//  The home screen is a list of rows, and each row opens
 //  its own screen with a back arrow in the top left; a setting is never hidden behind an accordion.
 //
 //    Appearance          Dark Mode (application), Dark Mode (map), Units
@@ -10,9 +10,9 @@
 //    Nostr relays
 //    Your keys
 //
-//  The screens of the two faces are thin wrappers: they pass what this shared screen cannot read itself — `onRide`
-//  (the rates and the wallet are frozen during a ride) and `driving` (the live radius/alerts: DriverContext on the
-//  Drive face, the saved settings on the Ride face). The Account screen last open is remembered for this tab
+//  The driver screen is a thin wrapper: it passes what this shared screen cannot read itself — `onRide`
+//  (the rates and the wallet are frozen during a ride) and `driving` (the live radius/alerts from DriverContext).
+//  The Account screen last open is remembered for this tab
 //  (lib/session.js), so a reload stays on it.
 // ════════════════════════════════════════════════════════════
 

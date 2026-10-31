@@ -4,7 +4,7 @@
   "private": true,
   "description": "A native metronome into the page: while the app runs in the background it wakes the rider's payment loop, so a pocketed phone keeps paying the ride's ticks. It never touches the wallet, the keys or the coins.",
   "license": "UNLICENSED",
-  "homepage": "https://github.com/trevthom/nostr-ride",
+  "homepage": "https://github.com/trevthom/nostr-ride-driver",
   "files": [
     "ios",
     "android",

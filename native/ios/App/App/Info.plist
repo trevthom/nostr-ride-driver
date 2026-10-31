@@ -44,16 +44,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<!-- Location: the Drive face shares the car's position with the rider while the app is in the
-	     background, and the Ride face measures the trip's distance on the rider's own phone.
-	     UIBackgroundModes: location is what lets the app keep running (and the payment loop keep
-	     paying ticks) with the screen off. Both stores ask why; the answer is that sentence. -->
+	<!-- Location: the driver app shares the car's position with the rider while the app is in the
+	     background. UIBackgroundModes: location is what lets the app keep running with the screen
+	     off. Both stores ask why; the answer is that sentence. -->
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Shows nearby drivers your pickup, shares your car's position with your rider, and measures the ride.</string>
+	<string>Shows your car on the map, shares its position with your rider, and measures the trip.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Keeps sharing your car's position with your rider, and measuring the ride, while the app is in the background.</string>
+	<string>Keeps sharing your car's position with your rider, and measuring the trip, while the app is in the background.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Keeps sharing your car's position with your rider, and measuring the ride, while the app is in the background.</string>
+	<string>Keeps sharing your car's position with your rider, and measuring the trip, while the app is in the background.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

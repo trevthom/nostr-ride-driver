@@ -5,11 +5,10 @@ import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
 import { cspPlugin } from "./csp.mjs";
 
-// "2026-10-12 21:30 UTC · from nostr-ride ff8df6c": the build time and the source commit (shown in Account).
-const buildId = () => new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC · from nostr-ride ff8df6c";
+// "2026-10-12 21:30 UTC": the build time (shown in Account).
+const buildId = () => new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
 
-// The driver app of NostrRide, as its own project (generated; see scripts/export-apps.mjs in nostr-ride).
-// One face only: src/app/App.jsx mounts the driver shell. base "./" lets the built files work from any sub-path.
+// The NostrRide driver app. src/app/App.jsx mounts the driver shell. base "./" lets the built files work from any sub-path.
 export default defineConfig({
   base: "./",
   envDir: ".",

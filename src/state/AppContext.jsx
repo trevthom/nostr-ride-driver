@@ -3,9 +3,8 @@
 //  tab is showing, the ride requests from the relays, transient
 //  banners, the local currency and the BTC prices, and the ecash wallet.
 //
-//  Role-specific state lives next to each app:
-//    src/rider/state/RiderContext.jsx    (requesting + riding)
-//    src/driver/state/DriverContext.jsx  (online, presence, offers)
+//  Role-specific state lives in src/driver/state/DriverContext.jsx
+//  (online, presence, offers).
 //
 //  Any screen can read this with the useApp() hook, e.g.:
 //      const { user, setView, publish } = useApp();

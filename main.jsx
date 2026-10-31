@@ -6,7 +6,7 @@ import { applyAppearance } from "./src/lib/appearance.js";
 import { registerServiceWorker } from "./src/lib/notify.js";
 
 // Mounts the app into the page. (This file sits in the app's own folder so the dev server can serve it; the app itself
-// lives in src/app, with its two faces in src/rider and src/driver.)
+// lives in src/app, and the driver screens are in src/driver.)
 // NOTE: React.StrictMode is intentionally NOT used here. In development
 // StrictMode mounts every component twice, which makes Leaflet create
 // and destroy each map twice and can crash the map. Leaving it off keeps

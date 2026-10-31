@@ -4,7 +4,7 @@
 //    2. Ecash wallet   Create New Wallet or Restore (until there is a wallet on this device), then the balance with Add funds
 //                      (Lightning or on-chain) and Send (an ecash token or a Lightning payment), the mint, ...
 //       then, inside it (EcashSection takes it as a child):
-//    3. Cash out location   the Lightning address (`lud16` in the profile, kind 0). It is the same in the Ride and Drive faces. Saving it here also
+//    3. Cash out location   the Lightning address (`lud16` in the profile, kind 0). It is the same in both apps. Saving it here also
 //                           PINS it on this device: money is sent only to the pinned address (lib/cashoutto.js, features/ecash/CashOutConfirm.jsx).
 //    4. Recovery phrase     the 12 words of the ecash wallet (they ARE the money: write them down, show them again).
 // ════════════════════════════════════════════════════════════

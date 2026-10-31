@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-//  DRIVER APP — generated from nostr-ride. One face only: the three driver tabs.
+//  DRIVER APP — the three driver tabs: Drive, Earnings and Account.
 //  Everything shared (key, profile, wallet, settings) is in AppProvider.
 // ════════════════════════════════════════════════════════════
 

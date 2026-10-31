@@ -2,10 +2,8 @@
 //  DRIVER PREFS — The two saved driver settings: the request radius and the new-request alerts. Both live on this
 //  device (localStorage, `requestRadius` / `requestAlerts`) and are part of the encrypted backup.
 //
-//  The Drive face keeps them in DriverContext (online, presence and the request list read them live). The Account
-//  screen shows every setting on BOTH faces, and on the Ride face there is no DriverContext mounted: it reads and
-//  writes the same saved settings with this hook. A switch to Drive mounts DriverContext again, which reads them
-//  fresh — so the two never disagree.
+//  DriverContext keeps them (online, presence and the request list read them live); the Account screen shows the
+//  same saved settings. Both read the same device values, so they never disagree.
 // ════════════════════════════════════════════════════════════
 
 import { useCallback, useState } from "react";

@@ -1,21 +1,12 @@
-# Native shells for the app
+# Native shells for the driver app
 
 A web page cannot read the location once the screen is off or the app is in the
-background. This folder wraps the **one app with two faces** in two native shells (iOS and
+background. This folder wraps the **driver app** in two native shells (iOS and
 Android, Capacitor), so that it can, through an iOS background mode or an Android foreground
 service.
 
-It does more than the driver's GPS:
-
-- **Drive face** — the car's position keeps being shared with the rider with the screen off.
-- **Ride face** — during a ride the app measures the trip on the rider's own phone (the 5% meter
-  rule), and the same running session is what keeps its page alive so the **ticks keep being paid
-  with the phone in a pocket**. A web page that iOS suspends stops paying; that is the failure this
-  shell exists to remove. A location fix is not enough on its own — a rider standing at a light, in
-  traffic or in a tunnel gets none — so the shell also runs a small **metronome**
-  (`plugins/heartbeat`) that wakes the page every 15 s. Nothing about the wallet moves into native
-  code: the page still holds the keys, the coins and the relays, and the metronome signs nothing.
-- Both faces: no service worker, no screen wake lock needed, native icons and splash.
+- **Driver app** — the car's position keeps being shared with the rider with the screen off.
+- No service worker and no screen wake lock are needed inside the shell; icons and splash are native.
 
 The web build is unchanged. `src/lib/nativeGeo.js` looks the plugin up at run time
 (`window.Capacitor`), and in a browser nothing changes.
@@ -25,8 +16,8 @@ native/
   capacitor.config.json   appId app.nostrride, name NostrRide, webDir ../dist
   package.json            Capacitor ^6.2.2 + @capacitor-community/background-geolocation
                           + nostrride-heartbeat (file:./plugins/heartbeat)
-  plugins/heartbeat/      the metronome, in Swift and Kotlin: wakes the page while a ride runs
-  resources/              icon + splash masters (from apps/nostrride/public/icon.svg)
+  plugins/heartbeat/      a native timer that can wake a throttled page, in Swift and Kotlin
+  resources/              icon + splash masters (from public/icon.svg)
   ios/                    the Xcode project — see ios/README.md to build and sign it
   android/                the Gradle project — build an APK here
 ```
@@ -47,7 +38,7 @@ Both shells embed the build; they never load the site over the network (an app t
 and money must not run fetched code).
 
 ```bash
-npm ci && npm run build      # from the repo root → dist/nostrride
+npm ci && npm run build      # from the repo root → dist/
 cd native && npm install
 ```
 
@@ -98,26 +89,17 @@ keytool -genkey -v -keystore ~/nostrride.keystore -alias nostrride -keyalg RSA -
 strings and `UIBackgroundModes: location`.
 
 **What both stores ask, and the answer:** the app shares the driver's position with their rider
-during a trip, and measures the ride on the rider's own phone. Say exactly that — it has to stay
-true.
+during a trip. Say exactly that — it has to stay true.
 
 ## What the app does differently inside the shell
 
 - Location comes from the background watcher, with a persistent notification on Android.
 - A location is sent to the rider on each fix (at most every 5 s), not on a timer the OS may pause.
-- **While a ride runs, the rider's watcher is in background mode and takes every fix (`heartbeat`).**
-  Each fix is a moment the page is known to be running, so the payment loop pays what fell due
-  right then instead of waiting for a timer iOS may throttle. Outside a ride it is foreground only
-  — "While Using" permission, no notification, no battery use.
-- **And while a ride runs, the shell beats time.** `plugins/heartbeat` starts a native timer when
-  `lib/heartbeat.js` asks for one and stops it when the last listener goes. Every 15 s it evaluates
-  `window.__nostrRideBeat()`, which resumes a throttled page; that is what covers the stationary
-  phone, when no fix arrives to do it. It is skipped in the foreground (the page's own 3 s loop is
-  running) and it holds nothing worth stealing: no key, no coin, no signing.
+- A native timer (`plugins/heartbeat`) can wake a throttled page while a ride runs; it holds no
+  key, no coin and no signing.
 - The screen wake lock and the service worker are skipped.
 
-## The two platform repos
+## The platform projects
 
-`trevthom/nostr-ride-ios` and `trevthom/nostr-ride-android` are build wrappers around this
-repository: their own README says which folder to sync. This repo stays the single source of
-truth for both shells — do not edit the shells in the wrappers.
+The iOS Xcode project and the Android Gradle project live in `ios/` and `android/` in this
+repository. There are no separate wrapper repositories: build and sign them from here.

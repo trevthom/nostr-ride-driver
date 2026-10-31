@@ -1,8 +1,8 @@
 # iOS shell — build and sign on a Mac
 
-The Xcode project for the one app with two faces. It is a **Capacitor shell**: the same
-`dist/nostrride` build the web app uses, wrapped so iOS will let it keep the location and the
-payment loop running with the screen off. Nothing in `src/` is iOS-specific.
+The Xcode project for the driver app. It is a **Capacitor shell**: the same
+`dist/` build the web app uses, wrapped so iOS will let it keep sharing the location with the
+screen off. Nothing in `src/` is iOS-specific.
 
 This folder was generated and configured on Linux, which means it has **never been compiled**.
 Everything below is the first thing to run on your Mac; treat the first build as a setup step,
@@ -23,7 +23,7 @@ not as a release.
 | Plugins | `@capacitor-community/background-geolocation` and the local `nostrride-heartbeat` (`../plugins/heartbeat`), both in `Podfile` (CocoaPods) |
 
 The icon and splash are generated from `../resources/icon.png` / `../resources/icon-foreground.png`,
-which come from the bolt mark in `apps/nostrride/public/icon.svg`. Replace those masters and
+which come from the bolt mark in `public/icon.svg`. Replace those masters and
 re-run whatever resizes them if the brand changes.
 
 ## 1. Prerequisites
@@ -41,7 +41,7 @@ From the repository root (the folder that has `package.json`):
 
 ```bash
 npm ci
-npm run build                     # writes dist/nostrride
+npm run build                     # writes dist/
 cd native
 npm install
 npx cap sync ios                  # copies dist into the Xcode project and runs pod install
@@ -78,9 +78,8 @@ This is the part that matters for a working app, so it is worth knowing what to 
 
 - The **first** prompt is *While Using the App* — the ordinary one, asked when the app starts.
 - When a **ride starts**, the app restarts its location watcher in background mode and iOS shows
-  the *Change to Always Allow* sheet. **Always** is what lets the app keep running (and the rider
-  keep paying ticks) with the phone in a pocket. If it is declined, the app still works in the
-  foreground and pays the outstanding fare when it next wakes — nothing is lost.
+  the *Change to Always Allow* sheet. **Always** is what lets the app keep sharing the car with the
+  phone in a pocket. If it is declined, the app still works in the foreground.
 - iOS periodically reminds the person that the app is using their location in the background.
   That is iOS, not a bug.
 
@@ -93,12 +92,11 @@ what the app does with location.
 Product → Archive → Distribute App → App Store Connect → Upload
 ```
 
-- **Background location justification** (asked in App Store Connect and by review): the Drive face
-  shares the driver's position with their rider during a trip; the Ride face measures the trip on
-  the rider's own phone. Same sentence on Google Play.
+- **Background location justification** (asked in App Store Connect and by review): the driver app
+  shares the driver's position with their rider during a trip. Same sentence on Google Play.
 - **Guideline 4.2 (minimum functionality)** is the real risk for a web app in a shell. The answer
   is that this is not a website wrapper: it runs a continuous background location session under
-  an Always permission, it measures and pays a ride while the phone is locked, and it works with
+  an Always permission, it shares the car and receives the rider's ecash while the phone is locked, and it works with
   no network at launch. Say that, and expect to explain it once.
 - **Encryption**: App Store Connect asks on every submission. This app uses standard
   cryptography only (schnorr signatures, NIP-44/NIP-49, Cashu blind signatures) and adds no
@@ -110,11 +108,7 @@ Product → Archive → Distribute App → App Store Connect → Upload
 ## 6. What you cannot check here, and must check on the phone
 
 - That the background location session really keeps the page alive with the screen locked (this is
-  what the rider's tick payments hang off — see `src/lib/useGeolocation.js`, `heartbeat`).
-- That the metronome really wakes the page: start a ride, lock the phone and **leave it still**
-  (a fix needs movement, a beat does not), then watch the driver's phone receive ticks every
-  minute or so. `native/plugins/heartbeat` is the Swift side; if Xcode reports the pod missing, run
-  `pod install` again — Capacitor renames the pod from the package name (`NostrrideHeartbeat`).
+  what the driver's location sharing hangs off — see `src/lib/useGeolocation.js`).
 - Battery use over a real 20-minute trip, and what iOS does to a long background session.
 - The exact wording and timing of the two location prompts on a current iOS version.
 - That the App Store accepts the shell (4.2) and the background-location justification.

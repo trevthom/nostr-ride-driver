@@ -39,10 +39,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Location. The Drive face shares the car's position with the rider while the screen is off (a
-         foreground service does the work); the Ride face measures the trip on the rider's own phone and,
-         while a ride runs, keeps its payment loop alive the same way. Google Play asks for the reason:
-         "sharing the driver's position with the rider, and measuring the ride, during a trip". -->
+    <!-- Location. The driver app shares the car's position with the rider while the screen is off (a
+         foreground service does the work). Google Play asks for the reason:
+         "sharing the driver's position with the rider, during a trip". -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />

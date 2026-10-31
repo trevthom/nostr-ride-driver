@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-//  AUTO CASH OUT FIELD — "Automatically cash out at: $ [ ]" (Account → Wallets, in the Ride and the Drive face).
+//  AUTO CASH OUT FIELD — "Automatically cash out at: $ [ ]" (Account → Wallets, in both apps).
 //  The person types an amount. When the ecash reaches it, the app sends it all to the cash out address PINNED on this device
 //  (lib/cashoutto.js) by itself (useAutoCashOut.js). Empty = off. The choice is saved when the field is left or Enter is pressed (NOT on every key:
 //  typing "15" must never cash out at "1"). Needs a confirmed cash out location.

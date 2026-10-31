@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-//  ECASH SECTION — The ecash part of Account → Wallets (WalletsSection.jsx), in both faces. `children` (the cash out location)
+//  ECASH SECTION — The ecash part of Account → Wallets (WalletsSection.jsx), in both apps. `children` (the cash out location)
 //  is drawn after the balance, so the Wallets section reads top to bottom as one.
 //  A ride is paid tick by tick in ecash (lib/ticks.js): the rider pays
 //  from this wallet, the driver is paid into it.
@@ -8,7 +8,7 @@
 //    • paste an ecash token to add it to the wallet
 //    • back up the wallet as tokens (ecash is cash: whoever holds a token owns it)
 //    (the 12-word recovery phrase that brings the ecash back on a new phone is its own Account part: RecoverySection.jsx)
-//    • Cash out (a tap) and "Automatically cash out at: $" (AutoCashOutField, runs in useAutoCashOut) in both faces. Both send to the cash out address PINNED
+//    • Cash out (a tap) and "Automatically cash out at: $" (AutoCashOutField, runs in useAutoCashOut) in both apps. Both send to the cash out address PINNED
 //      on this device (lib/cashoutto.js). Nothing asks the person to confirm an address.
 //    • Send ecash (SendEcash): a token for another ecash wallet, or a Lightning invoice / address
 //    • Disconnect ecash from this device: the coins and the recovery phrase are erased HERE (nothing is swapped); the money stays at the mint and
