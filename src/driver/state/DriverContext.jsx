@@ -36,7 +36,7 @@ import { waiverSplit } from "../../lib/finish.js";
 import { stopReplyEvent } from "../../lib/stops.js";
 import { redeemAllFor } from "../../features/payments/redeemTicks.js";
 import { getMyMint } from "../../features/ecash/myMint.js";
-import { isDriveReady } from "../../lib/profile.js";
+import { canStartDriving, isDriveReady } from "../../lib/profile.js";
 import { seal } from "../../lib/privacy.js";
 import { PICKUP_CHANGE_NOTE } from "../../lib/pickup.js";
 import { activeDriveFor, consentedDrive, pendingOfferFor, declinedDrivers, driverDeclines, driverDeclineEvent, isDirected } from "../../lib/trips.js";
@@ -117,10 +117,12 @@ export function DriverProvider({ children }) {
   // ── Online / offline ──
   const [online, setOnline] = useState(false);
   // A good or an approximate GPS fix may go online (lib/gps.js canBeOnline); a stale, missing or very vague one may not.
-  // A driver is paid in ecash: with the wallet disconnected from this device, nothing could be received, so GO stays off.
-  const goOnline = useCallback(() => { if (driveReady && !ecashOff && canBeOnline(gpsRef.current, posRef.current)) setOnline(true); }, [driveReady, ecashOff]);
+  // A driver is paid in ecash: the profile must be complete AND this device must hold an open wallet that is not
+  // disconnected (lib/profile.js canStartDriving), so GO and Accept stay off until the person can really be paid.
+  const canDrive = canStartDriving(user, { ecashOff, wallet: ecash });
+  const goOnline = useCallback(() => { if (canDrive && canBeOnline(gpsRef.current, posRef.current)) setOnline(true); }, [canDrive]);
   const goOffline = useCallback(() => setOnline(false), []);
-  useEffect(() => { if (!driveReady || ecashOff) setOnline(false); }, [driveReady, ecashOff]);
+  useEffect(() => { if (!canDrive) setOnline(false); }, [canDrive]);
 
   // Public presence (coarsened) while online and free to take a ride.
   const visible = online && !activeDrive;
@@ -341,6 +343,10 @@ export function DriverProvider({ children }) {
   // for the ride once the rider chooses it). The price in the offer is this driver's own estimate.
   const acceptRequest = useCallback(
     (request) => {
+      if (!canDrive) {
+        pushNotice(!ecash || ecashOff ? "Set up your ecash wallet before taking a ride." : "Finish your driver setup before taking a ride.");
+        return Promise.resolve(false);
+      }
       const c = parse(request);
       const rates = normalizeRates(user.rates) || APP_RATES;
       const mint = getMyMint();
@@ -381,7 +387,7 @@ export function DriverProvider({ children }) {
       refreshData();
       return sent;
     },
-    [publish, refreshData, myPosition, user, prices, pushNotice]
+    [publish, refreshData, myPosition, user, prices, pushNotice, canDrive, ecash, ecashOff]
   );
 
   const mark = useCallback(

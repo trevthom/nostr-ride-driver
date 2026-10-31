@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════
-//  SAFETY — Trusted contacts (kept on this device only) and the text /
-//  links the safety sheet sends. Pure helpers, so they can be tested.
+//  SAFETY — Trusted contacts (kept on this device and in the encrypted settings backup) and the text / links the
+//  safety sheet sends. Pure helpers, so they can be tested.
 // ════════════════════════════════════════════════════════════
 
 import { getSetting, setSetting } from "../config/relays.js";

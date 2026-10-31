@@ -3,8 +3,10 @@
 //  It is always on: there is no switch and no screen for it. Every saved setting goes to the person's relays as ONE note that only
 //  their secret key can open.
 //    1. At login it looks for the person's backup note on the relays. If it is NEWER than what this device last saw, the
-//       settings, the block list and the vouch list are put back (the screens are then drawn again with them: `onRestored`).
-//       Nothing is ever SENT before that check is done, so a fresh phone can never overwrite the backup with its empty state.
+//       settings, the block list, the trusted contacts and the vouch list are put back (the screens are then drawn again with
+//       them: `onRestored`). A vouch list that is only in the backup, or is newer there than the public event, is published
+//       again. Nothing is ever SENT before that check is done, and a device with nothing saved sends nothing at all, so a
+//       fresh phone can never overwrite the backup (and the other app's blocks and vouches) with its empty state.
 //    2. A change to any saved setting (a few seconds later) or to the vouch list (checked every minute) sends a new backup,
 //       but only when the content really changed. A note no relay accepted waits in the outbox (nostr/relay.js) and is sent later.
 // ════════════════════════════════════════════════════════════
@@ -13,8 +15,8 @@ import { useCallback, useEffect, useRef } from "react";
 import { relay } from "../nostr/relay.js";
 import { EVENT_KINDS } from "../nostr/eventKinds.js";
 import { getRelays, getSetting, setSetting, onSettingWrite } from "../config/relays.js";
-import { allowedKey, applyBackup, backupDigest, backupEvent, backupVouches, collectBackup, openBackup, sealBackup } from "../lib/backup.js";
-import { vouchEvent, vouchList } from "../lib/vouches.js";
+import { allowedKey, applyBackup, backupDigest, backupEvent, backupHasContent, backupVouches, collectBackup, openBackup, sealBackup } from "../lib/backup.js";
+import { newestVouchEvent, vouchEvent, vouchList, vouchesToPublish } from "../lib/vouches.js";
 
 const DEBOUNCE_MS = 4000;
 const POLL_MS = 60000;
@@ -42,10 +44,13 @@ export function useBackup({ user, publish, onRestored }) {
 
   const restore = useCallback(async (data) => {
     applyBackup(data);
-    // A vouch list that exists only in the backup (the public one is gone) is published again.
+    // The public vouch list is the copy the other app reads. Publish the backup's list when the public event is missing
+    // or older than this snapshot (an empty list is a real removal). A newer public list is never undone.
     const vouches = backupVouches(data);
     const { user: u, publish: pub } = live.current;
-    if (vouches.length && !vouchList(u.publicKey).length) { const ev = vouchEvent(vouches); await pub(ev.kind, ev.content, ev.tags); }
+    const newest = newestVouchEvent(u.publicKey);
+    const next = vouchesToPublish(vouchList(u.publicKey), newest?.created_at || 0, vouches, data.at, u.publicKey);
+    if (next) { const ev = vouchEvent(next); await pub(ev.kind, ev.content, ev.tags); }
     setSetting("backupAt", data.at);
     last.current = backupDigest(collectBackup(u.publicKey));
     live.current.onRestored?.();
@@ -71,19 +76,26 @@ export function useBackup({ user, publish, onRestored }) {
     let alive = true;
     ready.current = false;
     (async () => {
-      let looked = false;
+      let found = false;
       try {
         const remote = await fetchRemote();
         if (!alive) return;
-        looked = true;
-        if (remote && remote.at > getSetting("backupAt", 0)) await restore(remote);
-        else if (remote) last.current = backupDigest(collectBackup(me));
-        // No note yet: `last` stays empty, so the first note is sent below.
+        if (remote) {
+          found = true;
+          if (remote.at > getSetting("backupAt", 0)) await restore(remote);
+          else last.current = backupDigest(collectBackup(me));
+        }
       } catch { /* the relays did not answer */ }
       if (!alive) return;
       ready.current = true;
-      if (!looked) last.current = backupDigest(collectBackup(me)); // could not look: send nothing now, a change sends later
-      push();
+      if (!found) {
+        // No note was read. Only send one when this device has something worth keeping; otherwise a fresh app signing
+        // in before a relay answers would replace the person's note with an empty one (and erase their blocks and
+        // vouches for the other app). A saved setting or the minute timer sends the first real note later.
+        const snapshot = collectBackup(me);
+        if (backupHasContent(snapshot)) push();
+        else last.current = backupDigest(snapshot);
+      }
     })();
     return () => { alive = false; ready.current = false; };
   }, [me]); // eslint-disable-line react-hooks/exhaustive-deps

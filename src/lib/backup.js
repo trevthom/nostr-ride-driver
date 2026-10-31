@@ -51,6 +51,16 @@ export function collectBackup(me, nowMs = Date.now()) {
   return { v: 1, at: nowMs, settings, vouches: vouchList(me).slice(0, 100) };
 }
 
+// Whether this snapshot holds anything a person would miss (the relay list is always present). A device that has just
+// signed in and has not read the person's note must never write an empty note over it: that would erase the blocked
+// people, trusted contacts and vouches saved by the other app. It waits for a real change (or a note it could read).
+export function backupHasContent(data) {
+  if (!data || typeof data !== "object") return false;
+  if (Array.isArray(data.vouches) && data.vouches.length) return true;
+  const settings = data.settings && typeof data.settings === "object" ? data.settings : {};
+  return Object.keys(settings).some((k) => k !== "relays");
+}
+
 // The part that says whether anything CHANGED (not the time it was taken).
 export const backupDigest = (data) => bytesToHex(sha256(new TextEncoder().encode(JSON.stringify({ s: data.settings, v: data.vouches })))).slice(0, 16);
 

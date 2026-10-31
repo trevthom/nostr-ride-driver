@@ -14,6 +14,7 @@ const { EVENT_KINDS: K } = await import(`${R}/nostr/eventKinds.js`);
 
 const me = generateKeypair(), other = generateKeypair(), friend = generateKeypair();
 setSetting("blocked", [{ pubkey: other.publicKey, name: "Mallory", at: 1 }]);
+setSetting("trustedContacts", [{ name: "Sam", phone: "+15550100" }]);
 setSetting("units", "km"); setSetting("currency", "EUR"); setSetting("dark", true); setSetting("requestRadius", 40);
 setSetting("autoCashOut_" + me.publicKey.slice(0, 16), { amount: 25, code: "USD" });
 setSetting("ecash_" + me.publicKey.slice(0, 16), ["SECRET-COINS"]); // must never be backed up
@@ -26,6 +27,7 @@ relay._store(buildSignedEvent(K.VOUCH_LIST, { v: 1, count: 1 }, [["d", "vouches"
 const data = B.collectBackup(me.publicKey, 1000);
 assert.equal(data.v, 1); assert.equal(data.at, 1000);
 assert.deepEqual(data.settings.blocked, [{ pubkey: other.publicKey, name: "Mallory", at: 1 }]);
+assert.deepEqual(data.settings.trustedContacts, [{ name: "Sam", phone: "+15550100" }], "trusted contacts travel with the person");
 assert.equal(data.settings.units, "km"); assert.equal(data.settings.currency, "EUR"); assert.equal(data.settings.dark, true);
 assert.deepEqual(data.settings["autoCashOut_" + me.publicKey.slice(0, 16)], { amount: 25, code: "USD" });
 assert.deepEqual(data.settings.relays, ["wss://relay.one", "wss://relay.two"]);
@@ -57,6 +59,7 @@ setRelays(["wss://other"]);
 const set = B.applyBackup(data);
 assert.ok(set.includes("blocked") && set.includes("relays") && set.includes("currency"));
 assert.deepEqual(getSetting("blocked", []), [{ pubkey: other.publicKey, name: "Mallory", at: 1 }]);
+assert.deepEqual(getSetting("trustedContacts", []), [{ name: "Sam", phone: "+15550100" }], "the other app gets the trusted contacts");
 assert.equal(getSetting("units", "mi"), "km"); assert.equal(getSetting("requestRadius", 0), 40);
 assert.deepEqual(getRelays(), ["wss://relay.one", "wss://relay.two"]);
 assert.deepEqual(getSetting("riderDone", []), ["keep me"], "settings outside the backup are left alone");
@@ -66,6 +69,9 @@ assert.equal(getSetting("ecash_x", null), null, "an unknown key is ignored");
 assert.deepEqual(getRelays(), ["wss://relay.one", "wss://relay.two"], "a bad relay list is ignored");
 assert.equal(getSetting("autoCashOut_ok", null), 1, "an allowed prefix is accepted");
 assert.deepEqual(B.backupVouches({ vouches: [friend.publicKey, "nope", friend.publicKey, 5] }), [friend.publicKey]);
+assert.equal(B.backupHasContent({ settings: { relays: ["wss://relay.one"] } }), false, "a fresh device has nothing to overwrite the note with");
+assert.equal(B.backupHasContent({ settings: { blocked: [] } }), true, "a saved block list is content");
+assert.equal(B.backupHasContent({ settings: {}, vouches: [friend.publicKey] }), true, "a vouch list is content");
 assert.deepEqual(B.applyBackup(null), []);
 assert.equal(V.MAX_VOUCHES, 100);
 console.log("backup tests ok");

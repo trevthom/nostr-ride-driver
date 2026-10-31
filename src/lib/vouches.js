@@ -14,7 +14,9 @@
 //
 //    parsePubkey(text)       npub / nostr:npub / 64-hex → { pubkey } or { error }   (an nsec is refused, never kept)
 //    vouchEvent(list)        the event to publish for a list
+//    newestVouchEvent(pubkey) the newest list event in the cache (or null)
 //    vouchList(pubkey)       the people `pubkey` vouches for (newest list in the cache)
+//    vouchesToPublish(…)     the list a restored settings backup should publish again (or null)
 //    trustFor(target, me)    { direct, via: [pubkey…] } or null     trustHeadline / trustDetail: the words
 // ════════════════════════════════════════════════════════════
 
@@ -47,11 +49,18 @@ export function vouchEvent(list) {
   return { kind: EVENT_KINDS.VOUCH_LIST, content: { v: 1, count: clean.length }, tags: [["d", "vouches"], ...clean.map((p) => ["p", p])] };
 }
 
+// The newest vouch list event in the cache for `pubkey` (or null). The timestamp is what the backup restore uses to
+// decide whether the public list is older than the person's last saved snapshot.
+export function newestVouchEvent(pubkey) {
+  if (!pubkey) return null;
+  const mine = latestVersions(relay.query({ kinds: [EVENT_KINDS.VOUCH_LIST], authors: [pubkey] })).filter((e) => e.tags.some((t) => t[0] === "d" && t[1] === "vouches"));
+  return mine.sort((a, b) => b.created_at - a.created_at)[0] || null;
+}
+
 // The people `pubkey` vouches for, from their newest list in the cache (never themself, never more than MAX_VOUCHES).
 export function vouchList(pubkey) {
   if (!pubkey) return [];
-  const mine = latestVersions(relay.query({ kinds: [EVENT_KINDS.VOUCH_LIST], authors: [pubkey] })).filter((e) => e.tags.some((t) => t[0] === "d" && t[1] === "vouches"));
-  const newest = mine.sort((a, b) => b.created_at - a.created_at)[0];
+  const newest = newestVouchEvent(pubkey);
   if (!newest) return [];
   const out = [];
   for (const t of newest.tags) {
@@ -59,6 +68,22 @@ export function vouchList(pubkey) {
     if (out.length >= MAX_VOUCHES) break;
   }
   return out;
+}
+
+// The list a restored settings backup should publish again, or null when nothing needs publishing.
+//   current    the public list in the cache        publicAt   that event's time in seconds (0 = no event)
+//   backup     the list kept in the backup          backupAt   when that snapshot was taken (ms)
+// A backup older than the public event never undoes a newer change. An empty result ([]) is a real list: it removes
+// every vouch. Publishing the list after login is what makes the people a person vouched for on one app appear in the
+// other app even when the public event is missing, stale or was never accepted by a relay.
+export function vouchesToPublish(current, publicAt, backup, backupAt, me) {
+  const clean = [...new Set((backup || []).filter((p) => HEX64.test(p) && p !== me))].slice(0, MAX_VOUCHES);
+  const now = [...new Set((current || []).filter((p) => HEX64.test(p)))].slice(0, MAX_VOUCHES);
+  const same = clean.length === now.length && clean.every((p) => now.includes(p));
+  if (same) return null;
+  if (publicAt && backupAt && publicAt * 1000 >= backupAt) return null;
+  if (!publicAt && !clean.length) return null;
+  return clean;
 }
 
 // What `me` can say about `target`: { direct: I vouch for them, via: [the people I vouch for who vouch for them] }.

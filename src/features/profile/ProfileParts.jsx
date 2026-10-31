@@ -208,7 +208,8 @@ export function BlockedSection() {
     <div>
       <SectionLabel>Blocked users</SectionLabel>
       <p className="text-neutral-500 text-sm mb-3">
-        Add someone by npub, or from their profile. Blocking is saved on this device and the other person is not told.
+        Add someone by npub, or from their profile. The list is saved on this device and in your encrypted settings backup,
+        so it follows you to your other app. The other person is not told.
       </p>
       <div className="flex gap-2">
         <input

@@ -27,6 +27,7 @@ import { useBackup } from "./useBackup.js";
 import { applyAppearance } from "../lib/appearance.js";
 import { setUnits, getUnits } from "../lib/units.js";
 import { getProfile } from "../nostr/profiles.js";
+import { profileComm } from "../lib/profile.js";
 import { myVehicle } from "../lib/privacy.js";
 import { forgetKey } from "../nostr/keystore.js";
 import { loadSession, saveSession, clearSession, saveView, loadView } from "../lib/session.js";
@@ -432,10 +433,11 @@ export function AppProvider({ initialView, children }) {
     (async () => {
       await relay.fetchProfile(user.publicKey);
       const p = getProfile(user.publicKey);
-      if (alive && p && (p.picture || p.vehicle || p.lud16 || p.gender || p.rates || p.stats)) {
+      if (alive && p && (p.picture || p.vehicle || p.lud16 || p.gender || p.rates || p.stats || p.comm?.length)) {
         setUser((u) => u && ({
           ...u,
           picture: u.picture || p.picture || "",
+          comm: profileComm(p, u.comm), // contact methods saved from the other app come along with the shared profile
           lud16: u.lud16 || p.lud16 || "",
           vehicle: u.vehicle || myVehicle(u.publicKey, u.sk),
           gender: u.gender ?? p.gender ?? "",
@@ -447,15 +449,23 @@ export function AppProvider({ initialView, children }) {
     return () => { alive = false; };
   }, [user?.publicKey]);
 
-  // The profile (kind 0) is shared by the Rider and Driver apps. A cash out location saved in the other app arrives with the next look at
-  // our own profile: every 5 minutes and when this app comes back to the front.
+  // The profile (kind 0) is shared by the Rider and Driver apps. Contact methods and a cash out location saved in the other app
+  // arrive with the next look at our own profile: every 5 minutes and when this app comes back to the front.
   useEffect(() => {
     if (!user?.publicKey) return undefined;
     const me = user.publicKey;
     const look = async () => {
       await relay.fetchProfile(me);
-      const lud16 = getProfile(me)?.lud16 || "";
-      setUser((u) => (u && u.publicKey === me && (u.lud16 || "") !== lud16 ? { ...u, lud16 } : u));
+      const p = getProfile(me);
+      if (!p) return; // offline: keep what this device has
+      const lud16 = p.lud16 || "";
+      const comm = profileComm(p, []);
+      setUser((u) => {
+        if (!u || u.publicKey !== me) return u;
+        const sameComm = JSON.stringify(u.comm || []) === JSON.stringify(comm);
+        if ((u.lud16 || "") === lud16 && sameComm) return u;
+        return { ...u, lud16, comm };
+      });
     };
     const onVisible = () => { if (!document.hidden) look(); };
     const id = setInterval(look, 5 * 60000);

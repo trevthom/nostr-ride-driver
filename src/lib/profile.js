@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════════════════
 //  PROFILE — Whether a user has the info required to offer rides.
 //  Required to drive: a face photo, a vehicle photo (one is enough; up to 3 can be added, see vehiclePhotos),
-//  the license plate (state & number) and the vehicle year/make/model.
+//  the license plate (state & number) and the vehicle year/make/model, on a device with an ecash wallet.
 //  Optional: a cash out location (a Lightning address: riders tip there and "Cash out" sends there),
 //  and gender (riders may prefer to see drivers of one gender first).
 //
@@ -18,7 +18,7 @@ export const vehiclePhotos = (v) => [v?.picture, ...(Array.isArray(v?.morePictur
 export function driveGaps(user) {
   const v = user?.vehicle || {};
   const gaps = [];
-  if (!user?.picture) gaps.push({ id: "photo", title: "Profile photo", missing: [] });
+  if (!user?.picture) gaps.push({ id: "photo", title: "Face photo", missing: [] });
 
   const car = [["year", v.year], ["make", v.make], ["model", v.model]].filter(([, x]) => !x).map(([n]) => n);
   if (car.length) gaps.push({ id: "vehicle", title: "Vehicle", missing: car });
@@ -40,4 +40,24 @@ export function gapsText(gaps) {
 
 export function isDriveReady(user) {
   return driveGaps(user).length === 0;
+}
+
+// Whether the GO button and the Accept action may be used. Beyond the profile, a driver is paid in ecash, so this
+// device needs an ecash wallet it has opened (`wallet`, null while the wallet loads) that is not disconnected (`ecashOff`).
+// A device with no wallet shows the setup list instead of the online screen (HomeScreen), and GO stays off until the
+// wallet is open. The Accept guard catches a wallet that was disconnected while the app was already online.
+export function canStartDriving(user, { ecashOff = false, wallet = null } = {}) {
+  return !ecashOff && !!wallet && isDriveReady(user);
+}
+
+// The contact methods from a shared profile (kind 0). A profile that has not arrived keeps the methods this device
+// already has, so logging in on a bad connection never wipes one; a profile that did arrive is the truth (it may have
+// removed one in the other app). The same profile is read by the rider and driver apps.
+export function profileComm(profile, fallback = []) {
+  if (!profile) return Array.isArray(fallback) ? fallback : [];
+  const list = Array.isArray(profile.comm) ? profile.comm : [];
+  return list
+    .filter((c) => c && typeof c === "object")
+    .map((c) => ({ platform: String(c.platform ?? "").trim(), handle: String(c.handle ?? "").trim() }))
+    .filter((c) => c.platform && c.handle);
 }
