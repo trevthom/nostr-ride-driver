@@ -14,6 +14,7 @@ import { fullNpub } from "../nostr/keys.js";
 import { tripCounts } from "../lib/rides.js";
 import { vehiclePhotos } from "../lib/profile.js";
 import { useUnits, formatDistance } from "../lib/units.js";
+import { IS_DRIVER_APP } from "../config/app.js";
 import Avatar from "./Avatar.jsx";
 import VouchBadge from "./VouchBadge.jsx";
 import Icon from "./Icon.jsx";
@@ -44,6 +45,8 @@ export default function UserModal() {
 
   const p = getProfile(profileModalPubkey);
   const rep = tripCounts(profileModalPubkey);
+  const trips = IS_DRIVER_APP ? rep.drives : rep.rides;
+  const tripNoun = IS_DRIVER_APP ? "rider" : "driver";
   const name = p?.name || "Anonymous";
   const veh = p?.vehicle || null;
   const photos = vehiclePhotos(veh);
@@ -72,18 +75,11 @@ export default function UserModal() {
         <h2 className="text-2xl font-bold">{name}</h2>
         <div className="flex justify-center"><VouchBadge pubkey={profileModalPubkey} /></div>
 
-        {/* Always show both roles, even at zero. */}
-        <div className="flex justify-center gap-8 mt-4 text-sm">
-          <div>
-            <p className="text-neutral-500 text-[11px] font-semibold uppercase tracking-wider">As rider</p>
-            <p className="font-medium">{rep.rides} trip{rep.rides === 1 ? "" : "s"}</p>
-          </div>
-          <div>
-            <p className="text-neutral-500 text-[11px] font-semibold uppercase tracking-wider">As driver</p>
-            <p className="font-medium">{rep.drives} trip{rep.drives === 1 ? "" : "s"}</p>
-            {p?.stats?.miles > 0 && <p className="text-neutral-500 text-xs">{formatDistance(p.stats.miles, { unit: units })} driven</p>}
-          </div>
-        </div>
+        {/* Only this app's role count: a driver app counts riders, a rider app counts drivers. */}
+        <p className="mt-2 text-sm text-neutral-500">
+          {trips} {tripNoun}{trips === 1 ? "" : "s"}
+          {IS_DRIVER_APP && p?.stats?.miles > 0 && ` · ${formatDistance(p.stats.miles, { unit: units })} driven`}
+        </p>
 
         {veh && (veh.make || veh.model || veh.plateNumber || photos.length > 0) && (
           <div className="mt-5 border-t border-neutral-200 pt-4 text-left">

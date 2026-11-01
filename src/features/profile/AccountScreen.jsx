@@ -4,7 +4,7 @@
 //  its own screen with a back arrow in the top left; a setting is never hidden behind an accordion.
 //
 //    Appearance          Dark Mode (application), Dark Mode (map), Units
-//    Wallets             Currency, the ecash wallet (+ cash out location), the recovery phrase
+//    Money               Currency, the ecash wallet (+ cash out location), the recovery phrase
 //    Driver settings     Vehicle & plate and Your rates (required to drive), then Requests (radius, alerts) and Gender (optional)
 //    People & Privacy    Contact methods and Trusted contacts (right here), then Your vouches and Blocked users (screens)
 //    Nostr relays
@@ -52,7 +52,7 @@ export default function AccountScreen({ onRide = false, driving }) {
   if (page !== "home") {
     const pages = {
       appearance: { title: "Appearance", body: <ScreenBody><AppearanceSection /></ScreenBody> },
-      wallets: { title: "Wallets", body: <WalletsSection locked={onRide} /> },
+      wallets: { title: "Money", body: <WalletsSection locked={onRide} /> },
       driver: { title: "Driver settings", body: <DriverSettings locked={onRide} {...driving} /> },
       people: { title: "People & Privacy", body: <PeoplePage onOpen={go} /> },
       vouches: { title: "Your vouches", body: <ScreenBody><VouchesSection /></ScreenBody> },
@@ -75,7 +75,7 @@ export default function AccountScreen({ onRide = false, driving }) {
         <RecoveryNotice onOpen={() => { go("wallets"); startRecoverySetup(); }} />
         <div className="border-t border-neutral-200 divide-y divide-neutral-100">
           <Row icon="sun" title="Appearance" subtitle="Dark mode, units" onClick={() => go("appearance")} />
-          <Row icon="wallet" title="Wallets" subtitle="Currency, ecash, recovery phrase" onClick={() => go("wallets")} />
+          <Row icon="wallet" title="Money" subtitle="Currency, ecash, recovery phrase" onClick={() => go("wallets")} />
           <Row
             icon="car"
             title="Driver settings"

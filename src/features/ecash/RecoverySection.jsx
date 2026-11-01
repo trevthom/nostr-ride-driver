@@ -124,7 +124,7 @@ export function RecoveryPanel() {
     const id = setTimeout(() => setShown(false), SHOW_MS);
     return () => clearTimeout(id);
   }, [shown]);
-  if (ecashOff) return <p className="text-sm text-neutral-500" role="status">This phone has no ecash wallet. Create or restore one in Wallets; then its 12 words are shown here.</p>;
+  if (ecashOff) return <p className="text-sm text-neutral-500" role="status">This phone has no ecash wallet. Create or restore one in Money; then its 12 words are shown here.</p>;
   if (!recovery) return <p className="text-sm text-neutral-500" role="status">Loading your wallet…</p>;
 
   const safe = recovery.backedUp();
