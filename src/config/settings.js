@@ -18,7 +18,7 @@ export const FALLBACK_BTC_USD = 100000;
 // publish a silly rate.
 export const RATE_LIMITS = { base: 50, perMile: 20, perMinute: 5 };
 
-// The rider's ecash balance turns red during a ride when it is this many US dollars (or the same value in sats) or less.
+// A rider's ecash balance is low at this many US dollars (or the same value in sats) or less.
 // It is a warning only: a ride is never stopped by it.
 export const LOW_BALANCE_USD = 5;
 

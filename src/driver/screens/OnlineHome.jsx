@@ -19,7 +19,7 @@ import { useDriver, fareOf, typicalSatsFor, shownSats } from "../state/DriverCon
 import { driveMinutes, pickupEta, roadMiles } from "../../lib/fare.js";
 import { haversineDistance } from "../../lib/geo.js";
 import { completedDrives, summarizeEarnings } from "../../lib/earnings.js";
-import { isScheduledLater, isDirected, requestAvoidsTolls } from "../../lib/trips.js";
+import { isScheduledLater, isDirected } from "../../lib/trips.js";
 import { OFFER_TTL_SECONDS, REQUEST_CARD_SECONDS } from "../../config/settings.js";
 import MapView from "../../ui/MapView.jsx";
 import Money, { moneyText } from "../../ui/Money.jsx";
@@ -165,7 +165,6 @@ function Incoming({ item, auto, onClose }) {
   const { user, btcPrice, usdPrice, prices } = useApp();
   const { acceptRequest, decline, skip } = useDriver();
   const { request, content: c, miles } = item;
-  const avoidTolls = requestAvoidsTolls(request);
   const [left, setLeft] = useState(REQUEST_CARD_SECONDS);
   const [busy, setBusy] = useState(false);
   const { profile } = useRiderInfo(request.pubkey);
@@ -224,9 +223,6 @@ function Incoming({ item, auto, onClose }) {
       <div className="mt-4 pt-3 border-t border-neutral-100"><RiderInfo pubkey={request.pubkey} compact /></div>
       {passengerCount(c) > 0 && (
         <p className="mt-2 text-sm text-neutral-600 flex items-center gap-1.5"><Icon name="user" size={14} /> Rider + {passengerCount(c)} passenger{passengerCount(c) === 1 ? "" : "s"}</p>
-      )}
-      {avoidTolls && (
-        <p className="mt-2"><span className="text-xs font-semibold bg-neutral-100 rounded-full px-2.5 py-1">Avoid tolls</span></p>
       )}
       {c.notes && <p className="mt-2 text-sm text-neutral-600 bg-neutral-100 rounded-xl px-3 py-2">“{c.notes}”</p>}
 

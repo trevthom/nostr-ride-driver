@@ -16,7 +16,8 @@ const me = generateKeypair(), other = generateKeypair(), friend = generateKeypai
 setSetting("blocked", [{ pubkey: other.publicKey, name: "Mallory", at: 1 }]);
 setSetting("trustedContacts", [{ name: "Sam", phone: "+15550100" }]);
 setSetting("units", "km"); setSetting("currency", "EUR"); setSetting("dark", true); setSetting("requestRadius", 40);
-setSetting("avoidTolls", true); setSetting("vouchNotes", { [friend.publicKey]: "met at the co-op" });
+setSetting("avoidTolls", true); // retired driver setting: it must not be backed up or restored any more
+setSetting("vouchNotes", { [friend.publicKey]: "met at the co-op" });
 setSetting("autoCashOut_" + me.publicKey.slice(0, 16), { amount: 25, code: "USD" });
 setSetting("ecash_" + me.publicKey.slice(0, 16), ["SECRET-COINS"]); // must never be backed up
 setSetting("prices", { prices: { USD: 1 }, at: 1 });
@@ -30,7 +31,7 @@ assert.equal(data.v, 1); assert.equal(data.at, 1000);
 assert.deepEqual(data.settings.blocked, [{ pubkey: other.publicKey, name: "Mallory", at: 1 }]);
 assert.deepEqual(data.settings.trustedContacts, [{ name: "Sam", phone: "+15550100" }], "trusted contacts travel with the person");
 assert.equal(data.settings.units, "km"); assert.equal(data.settings.currency, "EUR"); assert.equal(data.settings.dark, true);
-assert.equal(data.settings.avoidTolls, true, "the toll preference follows the driver");
+assert.ok(!("avoidTolls" in data.settings), "the retired driver toll preference is not backed up");
 assert.equal(data.settings.vouchNotes[friend.publicKey], "met at the co-op", "private vouch notes are backed up");
 assert.deepEqual(data.settings["autoCashOut_" + me.publicKey.slice(0, 16)], { amount: 25, code: "USD" });
 assert.deepEqual(data.settings.relays, ["wss://relay.one", "wss://relay.two"]);
@@ -64,7 +65,7 @@ assert.ok(set.includes("blocked") && set.includes("relays") && set.includes("cur
 assert.deepEqual(getSetting("blocked", []), [{ pubkey: other.publicKey, name: "Mallory", at: 1 }]);
 assert.deepEqual(getSetting("trustedContacts", []), [{ name: "Sam", phone: "+15550100" }], "the other app gets the trusted contacts");
 assert.equal(getSetting("units", "mi"), "km"); assert.equal(getSetting("requestRadius", 0), 40);
-assert.equal(getSetting("avoidTolls", false), true);
+assert.equal(getSetting("avoidTolls", false), false, "the retired driver toll preference is not restored");
 assert.equal(getSetting("vouchNotes", {})[friend.publicKey], "met at the co-op");
 assert.deepEqual(getRelays(), ["wss://relay.one", "wss://relay.two"]);
 assert.deepEqual(getSetting("riderDone", []), ["keep me"], "settings outside the backup are left alone");

@@ -19,9 +19,9 @@ import { getUnits, ratePerUnit, perMileFrom, formatDistance } from "../../lib/un
 
 // The distance rate is typed and shown per mile or per kilometer (Account → Units); it is saved per mile.
 const fields = () => [
-  ["base", "Base fare", "Charged on every ride"],
-  getUnits() === "km" ? ["perMile", "Per kilometer", "For each kilometer driven"] : ["perMile", "Per mile", "For each mile driven"],
-  ["perMinute", "Per minute", "For each minute of the trip"],
+  ["base", "Base fare"],
+  getUnits() === "km" ? ["perMile", "Per kilometer"] : ["perMile", "Per mile"],
+  ["perMinute", "Per minute"],
 ];
 const inputCls = "w-full bg-white border border-neutral-300 rounded-lg py-2 pl-6 pr-2 text-black text-sm focus:outline-none focus:border-black";
 
@@ -72,20 +72,16 @@ export default function TypicalFareSection({ rates, onSave, locked = false }) {
   return (
     <section>
       <SectionLabel>Your rates</SectionLabel>
-      <p className="text-sm text-neutral-500 mb-3">
-        Riders see what you would charge for their trip, next to your name.
-      </p>
       {locked && <p className="text-sm text-amber-800 bg-amber-50 rounded-xl px-3 py-2 mb-3" role="status">Your rates are frozen while a ride is running. You can change them when it ends.</p>}
       {saved && saved.currency !== currency && <p className="text-xs text-amber-700 mb-2" role="status">Your saved rates are in {saved.currency}. Save to use {currency} instead.</p>}
       <div className="grid grid-cols-3 gap-2">
-        {FIELDS.map(([key, label, hint]) => (
+        {FIELDS.map(([key, label]) => (
           <label key={key} className="block">
             <span className="block text-xs font-semibold text-neutral-600 mb-1">{label}</span>
             <span className="relative block">
               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-neutral-500" aria-hidden="true">{symbol}</span>
               <input aria-label={`${label} in ${currency}`} inputMode="decimal" value={form[key]} disabled={locked} onChange={(e) => edit(key, e.target.value)} className={inputCls} />
             </span>
-            <span className="block text-[11px] text-neutral-500 mt-0.5">{hint}</span>
           </label>
         ))}
       </div>

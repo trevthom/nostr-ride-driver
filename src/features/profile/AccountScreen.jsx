@@ -115,7 +115,7 @@ function PeoplePage({ onOpen }) {
 
 // The driver's setup — this is what makes someone able to drive. The vehicle and the rates are the required parts (both
 // are frozen for a running ride, `locked`); the request radius, the alerts and the gender are optional.
-function DriverSettings({ locked, radius, setRadius, alerts, setAlerts, avoidTolls, setAvoidTolls }) {
+function DriverSettings({ locked, radius, setRadius, alerts, setAlerts }) {
   const { user } = useApp();
   const save = useSaveProfile();
   const gaps = driveGaps(user);
@@ -128,14 +128,14 @@ function DriverSettings({ locked, radius, setRadius, alerts, setAlerts, avoidTol
         gapsFor={(vehicle) => driveGaps({ ...user, vehicle })}
       />
       <TypicalFareSection rates={user.rates} onSave={(rates) => save({ rates })} locked={locked} />
-      <RequestSettings radius={radius} setRadius={setRadius} alerts={alerts} setAlerts={setAlerts} avoidTolls={avoidTolls} setAvoidTolls={setAvoidTolls} />
+      <RequestSettings radius={radius} setRadius={setRadius} alerts={alerts} setAlerts={setAlerts} />
       <GenderSetting />
     </div>
   );
 }
 
 // Request radius and new-request alerts. They were the "Driving" screen; there is no separate Driving section any more.
-function RequestSettings({ radius, setRadius, alerts, setAlerts, avoidTolls, setAvoidTolls }) {
+function RequestSettings({ radius, setRadius, alerts, setAlerts }) {
   const [units] = useUnits();
   return (
     <section>
@@ -164,18 +164,6 @@ function RequestSettings({ radius, setRadius, alerts, setAlerts, avoidTolls, set
           </div>
           <Toggle checked={alerts} onChange={setAlerts} label="New request alerts" />
         </div>
-        <label className="flex items-start gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={!!avoidTolls}
-            onChange={(e) => setAvoidTolls(e.target.checked)}
-            className="mt-1 h-5 w-5 shrink-0 accent-black"
-          />
-          <span>
-            <span className="block font-medium">Avoid tolls</span>
-            <span className="block text-sm text-neutral-500">Routes go around toll roads where the routing service supports it.</span>
-          </span>
-        </label>
       </div>
     </section>
   );

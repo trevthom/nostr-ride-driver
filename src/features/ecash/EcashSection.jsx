@@ -27,7 +27,6 @@ import Icon from "../../ui/Icon.jsx";
 import Money, { moneyText } from "../../ui/Money.jsx";
 import { cleanMintUrl, mintLabel } from "../../lib/mints.js";
 import { requestInvoice, isLightningAddress } from "../../lib/lnurl.js";
-import { isLowBalance } from "../../lib/fare.js";
 import AddFunds from "../payments/AddFunds.jsx";
 import SendEcash from "./SendEcash.jsx";
 import { getMyMint, setMyMint } from "./myMint.js";
@@ -35,7 +34,7 @@ import WalletStart from "./WalletStart.jsx";
 import { useCashOutTo } from "./useCashOutTo.js";
 
 export default function EcashSection({ locked = false, children = null }) {
-  const { ecash, ecashOff, ecashWaiting, disconnectEcash, user, btcPrice, usdPrice, pushNotice } = useApp();
+  const { ecash, ecashOff, ecashWaiting, disconnectEcash, user, btcPrice, pushNotice } = useApp();
   const [mint, setMint] = useState(getMyMint());
   const [draft, setDraft] = useState(mint);
   const [adding, setAdding] = useState(false);
@@ -49,7 +48,6 @@ export default function EcashSection({ locked = false, children = null }) {
   const draftUrl = cleanMintUrl(draft);
   const balances = ecash ? ecash.balances() : {};
   const total = ecash ? ecash.total() : 0;
-  const low = ecash ? isLowBalance(total, usdPrice) : false;
 
   const saveMint = async () => {
     const url = cleanMintUrl(draft);
@@ -135,13 +133,12 @@ export default function EcashSection({ locked = false, children = null }) {
   return (
     <section>
       <SectionLabel>Ecash wallet</SectionLabel>
-      <p className="text-sm text-neutral-500 mb-3">Add ecash here before you ride.</p>
       {!ecash && <p className="text-sm text-neutral-500" role="status">{ecashWaiting ? "Your wallet is open in another window of this browser. Close that window, or use it. This one opens the wallet as soon as the other lets go." : "Loading your wallet…"}</p>}
       {ecash && (
         <>
           <div className="rounded-2xl bg-neutral-100 p-5">
             <p className="text-neutral-500 text-xs">Balance</p>
-            <Money sats={total} stacked className={`text-3xl font-bold ${low ? "text-red-600" : ""}`} subClassName={low ? "text-red-600 text-xs" : "text-neutral-500 text-xs"} />
+            <Money sats={total} stacked className="text-3xl font-bold" subClassName="text-neutral-500 text-xs" />
             <p className="text-xs text-neutral-500 mt-1">Dollar values are estimates at the current bitcoin price. Your balance is held as bitcoin ecash tokens, so its dollar value can change.</p>
             {Object.entries(balances).map(([url, sats]) => (
               <div key={url} className="flex items-center gap-2 mt-3 text-sm">
@@ -205,9 +202,6 @@ export default function EcashSection({ locked = false, children = null }) {
             <p className="text-xs text-neutral-500 mt-1">{locked ? "Not while a ride is running." : "Use this on a phone you are about to lose, sell or stop trusting. The money stays at the mint. Restore my wallet brings it back with your 12 words."}</p>
           </div>
           {msg && <p className="text-sm text-neutral-700 mt-3" role="status">{msg}</p>}
-          <p className="text-xs text-neutral-500 mt-3">
-            Your ecash is saved on this device, encrypted with your key. If you lose the phone, your 12 recovery words bring it back (Restore my wallet). Logging out keeps it here.
-          </p>
         </>
       )}
       {adding && <AddFunds mint={mint} onClose={() => setAdding(false)} />}

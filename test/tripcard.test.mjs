@@ -7,7 +7,7 @@ const M = await import(`${R}/lib/meter.js`);
 const E = await import(`${R}/lib/useFareEstimate.js`);
 const { LOW_BALANCE_USD } = await import(`${R}/config/settings.js`);
 
-// ── The rider's ecash turns red at $5.00 or less (US dollars at the live price) ──
+// ── A rider's ecash is low at $5.00 or less (US dollars at the live price) ──
 assert.equal(LOW_BALANCE_USD, 5);
 assert.equal(F.lowBalanceSats(100000), 5000, "$5 at $100,000 per bitcoin");
 assert.equal(F.isLowBalance(5000, 100000), true, "exactly $5.00 is low");
