@@ -18,7 +18,7 @@
 //    height            fixed pixel height; omit to fill the parent
 //    navigation        trip mode (turns on the props below)
 //    follow            {lat,lng,id} the vehicle to follow; id = that car's `pubkey`
-//    avoidTolls        ask the router for a toll-free road route (Valhalla); the route info says whether it succeeded
+//    avoidTolls        the rider's per-request choice: use Valhalla and show no route at all if it cannot avoid tolls
 //  Ref: { fit() } re-centres the view (in trip mode: back on the vehicle).
 //
 //  TRIP MODE (`navigation`): the camera zooms in on the vehicle and follows it, north
@@ -312,18 +312,29 @@ const MapView = forwardRef(function MapView(
     (async () => {
       let latlngs = route.map((p) => [p.lat, p.lng]);
       let info = null;
+      let tollFreeUnavailable = false;
       try {
         const r = await getDrivingRoute(route, { avoidTolls });
-        if (r?.coordinates?.length) {
+        if (r?.coordinates?.length && (!avoidTolls || r.tollFree === true)) {
           latlngs = r.coordinates.map((c) => [c[1], c[0]]); // routers return [lng,lat]
           info = { miles: metersToMiles(r.distanceMeters), minutes: Math.max(1, Math.round(r.durationSeconds / 60)), straight: false, tollFree: r.tollFree };
+        } else if (avoidTolls) {
+          tollFreeUnavailable = true;
         }
-      } catch { /* fall back to a straight line */ }
+      } catch {
+        if (avoidTolls) tollFreeUnavailable = true; // a toll-free ride never falls back to a normal route
+      }
       if (mine !== reqId.current || !layers.current.route) return;
+      if (tollFreeUnavailable) {
+        routeLatLngs.current = [];
+        latest.current.onRoute?.({ unavailable: true });
+        setRouteTick((t) => t + 1);
+        return;
+      }
       if (!info) {
         let miles = 0;
         for (let i = 1; i < route.length; i++) miles += haversineDistance(route[i - 1].lat, route[i - 1].lng, route[i].lat, route[i].lng);
-        info = { miles: miles * 1.3, minutes: Math.max(1, Math.round((miles * 1.3 / 24) * 60)), straight: true, tollFree: avoidTolls ? false : undefined };
+        info = { miles: miles * 1.3, minutes: Math.max(1, Math.round((miles * 1.3 / 24) * 60)), straight: true };
       }
       try {
         L.polyline(latlngs, { color: "#fff", weight: routeDashed ? 8 : 9, opacity: 0.9, lineCap: "round" }).addTo(g);

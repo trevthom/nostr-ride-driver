@@ -152,6 +152,9 @@ export function onlyPreferredOffers(offers, pref) {
 // it reaches only the drivers the rider named (lib/audienceStore.js), and AudienceSync does not spread it to others.
 export const isDirected = (request) => parse(request)?.directed === true;
 
+// The rider's choice for THIS request only: a missing or false value means normal routing (older apps).
+export const requestAvoidsTolls = (request) => parse(request)?.avoidTolls === true;
+
 const dOf = (e) => (e.tags.find((t) => t[0] === "d") || [])[1];
 
 // The drivers who turned the request down. A decline counts only from the driver who signed it (it can only take THAT driver off the list).

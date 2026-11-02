@@ -1,14 +1,13 @@
 // ════════════════════════════════════════════════════════════
-//  ROUTING — Get a real driving route between points. OSRM is the normal router; a toll-free request uses
-//  Valhalla, because the public OSRM demo rejects `exclude=toll`. If Valhalla cannot answer, the app falls back
-//  to the normal route and marks it `tollFree: false`, so the screen can say that tolls were not avoided.
+//  ROUTING — Get a real driving route between points. OSRM is the normal router; a ride whose rider
+//  asked to avoid tolls uses Valhalla, because the public OSRM demo rejects `exclude=toll`. There is
+//  no fallback for a toll-free ride: if Valhalla fails or returns a toll route, the route is unavailable.
 //
 //  NOTE: router.project-osrm.org and valhalla1.openstreetmap.de are demo servers (rate-limited, no uptime
 //  guarantee). For production, self-host one of them or use a paid routing API — keep this same return shape.
 // ════════════════════════════════════════════════════════════
 
 import { OSRM_URL, VALHALLA_URL } from "../config/services.js";
-import { getSetting } from "../config/relays.js";
 
 const ENDPOINT = `${OSRM_URL}/route/v1/driving`;
 
@@ -19,26 +18,26 @@ const CACHE_MAX = 60;
 
 // points: [{ lat, lng }, ...] (need at least 2).
 // Returns { coordinates: [[lng,lat],...], distanceMeters, durationSeconds, tollFree? }.
-export function getDrivingRoute(points, { avoidTolls = getSetting("avoidTolls", false) } = {}) {
+export function getDrivingRoute(points, { avoidTolls = false } = {}) {
   if (!points || points.length < 2) return Promise.resolve(null);
   const tolls = !!avoidTolls;
   const coords = points.map((p) => `${p.lng.toFixed(5)},${p.lat.toFixed(5)}`).join(";");
   const key = `${tolls ? "toll" : "direct"}|${coords}`;
   if (cache.has(key)) return cache.get(key);
-  const job = tolls ? fetchTollRoute(points, coords) : fetchOsrmRoute(coords);
+  const job = tolls ? fetchTollRoute(points) : fetchOsrmRoute(coords);
   cache.set(key, job);
   if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value);
-  job.catch(() => cache.delete(key));
+  job.then((r) => { if (!r) cache.delete(key); }).catch(() => cache.delete(key));
   return job;
 }
 
-async function fetchTollRoute(points, coords) {
+// A toll-free request never falls back to OSRM or to a straight line: no route means no route.
+async function fetchTollRoute(points) {
   try {
-    const r = await fetchValhallaRoute(points);
-    if (r) return r;
-  } catch { /* the toll router did not answer: use the road route and say tolls were not avoided */ }
-  const r = await fetchOsrmRoute(coords);
-  return r ? { ...r, tollFree: false } : null;
+    return await fetchValhallaRoute(points);
+  } catch {
+    return null;
+  }
 }
 
 async function fetchOsrmRoute(coords) {
@@ -54,17 +53,26 @@ async function fetchOsrmRoute(coords) {
   };
 }
 
+export const valhallaBody = (points) => ({
+  locations: points.map((p) => ({ lat: p.lat, lon: p.lng })),
+  costing: "auto",
+  costing_options: { auto: { use_tolls: 0 } },
+  directions_options: { units: "miles" },
+});
+
 async function fetchValhallaRoute(points) {
-  const body = {
-    locations: points.map((p) => ({ lat: p.lat, lon: p.lng })),
-    costing: "auto",
-    costing_options: { auto: { use_tolls: 0 } },
-    units: "miles",
-  };
-  const res = await fetch(`${VALHALLA_URL}/route?json=${encodeURIComponent(JSON.stringify(body))}`);
+  const res = await fetch(`${VALHALLA_URL}/route`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(valhallaBody(points)),
+  });
   if (!res.ok) throw new Error("Toll-free routing request failed");
   const trip = (await res.json())?.trip;
-  if (!trip?.legs?.length) return null;
+  const summary = trip?.summary;
+  if (!trip?.legs?.length || !summary || summary.has_toll) return null;
+  const miles = Number(summary.length);
+  const seconds = Number(summary.time);
+  if (!Number.isFinite(miles) || !Number.isFinite(seconds)) return null;
   const coordinates = [];
   for (const leg of trip.legs) {
     for (const [lat, lng] of decodePolyline6(leg.shape || "")) {
@@ -75,14 +83,14 @@ async function fetchValhallaRoute(points) {
   if (coordinates.length < 2) return null;
   return {
     coordinates,
-    distanceMeters: trip.summary.length * 1609.344,
-    durationSeconds: trip.summary.time,
-    tollFree: !trip.summary.has_toll,
+    distanceMeters: miles * 1609.344,
+    durationSeconds: seconds,
+    tollFree: true,
   };
 }
 
 // Valhalla returns a polyline with 6 decimal places (the OSRM helper uses GeoJSON instead).
-function decodePolyline6(encoded) {
+export function decodePolyline6(encoded) {
   const out = [];
   let index = 0, lat = 0, lng = 0;
   while (index < encoded.length) {

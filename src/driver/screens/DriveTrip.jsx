@@ -31,7 +31,7 @@ import FareBreakdown from "../../ui/FareBreakdown.jsx";
 import TripMeter, { peekMeter } from "../../ui/TripMeter.jsx";
 import { exactTrip } from "../../lib/privacy.js";
 import { driverSharePayload } from "../../lib/safety.js";
-import { acceptFor, offerFrom } from "../../lib/trips.js";
+import { acceptFor, offerFrom, requestAvoidsTolls } from "../../lib/trips.js";
 import { haversineDistance } from "../../lib/geo.js";
 import { pickupEta } from "../../lib/fare.js";
 import { rideTerms } from "../../lib/terms.js";
@@ -54,11 +54,12 @@ const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 export default function DriveTrip({ request }) {
   const { user, liveTick, pushNotice } = useApp();
-  const { myPosition, gps, arrive, startTrip, finishRide, answerPickup, answerStop, odo, agreed, driveMoney, share, shareUpdate, avoidTolls } = useDriver();
+  const { myPosition, gps, arrive, startTrip, finishRide, answerPickup, answerStop, odo, agreed, driveMoney, share, shareUpdate } = useDriver();
   const { btcPrice } = useApp();
   const stage = rideStage(request);
   const exact = exactTrip(request, user);
   const trip = exact || parse(request);
+  const avoidTolls = requestAvoidsTolls(request); // the rider's choice for this ride only
   const { profile } = useRiderInfo(request.pubkey);
   const accept = acceptFor(request, user.publicKey);
   const paid = accept ? parse(accept) : null;
@@ -97,7 +98,8 @@ export default function DriveTrip({ request }) {
   }, [myPosition?.lat, myPosition?.lng, stage, stops.length, passed]); // eslint-disable-line react-hooks/exhaustive-deps
   const miles = myPosition ? haversineDistance(myPosition.lat, myPosition.lng, target.lat, target.lng) : null;
   // Minutes left: the road route from the car when the router answered, else a straight-line guess.
-  const eta = miles == null ? null : routeInfo && !routeInfo.straight ? routeInfo.minutes : pickupEta(miles);
+  const tollRouteUnavailable = avoidTolls && routeInfo?.unavailable === true;
+  const eta = miles == null || tollRouteUnavailable ? null : routeInfo && !routeInfo.straight ? routeInfo.minutes : pickupEta(miles);
 
   // Keep a shared drive current for the people following the link: this phone's position (the car), every 6 s,
   // the same pace as the rider's share. The plate is this driver's own, for the people they chose to tell; the
@@ -244,7 +246,7 @@ export default function DriveTrip({ request }) {
               <span className="text-neutral-600">Paid by the rider</span>
               <Money sats={driveMoney?.paid || 0} className="font-semibold" />
             </div>
-            {fare > 0 && <EstimatedTotal className="mt-2" baseSats={fare} trip={full} changed={acceptedStops.length > 0} changeKinds={changeKinds} terms={terms} />}
+            {fare > 0 && <EstimatedTotal className="mt-2" baseSats={fare} trip={full} changed={acceptedStops.length > 0} changeKinds={changeKinds} terms={terms} avoidTolls={avoidTolls} />}
             <FareBreakdown ledger={driveMoney?.ledger} paidSats={driveMoney?.paid || 0} className="mt-3 pt-3 border-t border-neutral-200" />
             <p className="text-xs text-neutral-500 mt-2">
               Your rates are frozen for this ride. Payments arrive in your ecash wallet as the ride runs.
@@ -278,9 +280,9 @@ export default function DriveTrip({ request }) {
             Showing the approximate area. The exact address arrives with the rider's confirmation. This can take a moment.
           </p>
         )}
-        {avoidTolls && routeInfo?.tollFree === false && (
+        {avoidTolls && routeInfo?.unavailable && (
           <p className="text-sm text-amber-700 bg-amber-50 rounded-xl px-3 py-2 mt-3" role="status">
-            Toll-free routing is unavailable right now, so this route may include tolls.
+            No toll-free route is available. The route and fare estimates are unavailable.
           </p>
         )}
 
@@ -315,7 +317,7 @@ export default function DriveTrip({ request }) {
           <div className="mt-3 rounded-2xl border-2 border-black p-4" role="group" aria-label="Stop request">
             <p className="font-bold">{pendingStop.mode === "destination" ? "The rider asks for a new destination" : "The rider asks to add a stop"}</p>
             <p className="text-[15px] mt-1 font-semibold">{stopPlace?.name || "The place can't be read yet."}</p>
-            <ChangeEstimate className="mt-3" from={myPosition} ahead={ahead} mode={pendingStop.mode} place={stopPlace} terms={terms} />
+            <ChangeEstimate className="mt-3" from={myPosition} ahead={ahead} mode={pendingStop.mode} place={stopPlace} terms={terms} avoidTolls={avoidTolls} />
             <p className="text-xs text-neutral-600 mt-2">
               If you accept, the rider keeps paying your normal fare for the extra distance and time. You can also finish the ride instead.
             </p>

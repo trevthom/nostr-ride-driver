@@ -19,7 +19,7 @@ export const TILE_ATTRIBUTION = env.VITE_TILE_ATTRIBUTION || "© OpenStreetMap c
 export const PHOTON_URL = clean(env.VITE_PHOTON_URL || "https://photon.komoot.io");
 export const OSRM_URL = clean(env.VITE_OSRM_URL || "https://router.project-osrm.org");
 // The public OSRM demo does not support exclude=toll; Valhalla does, through costing_options.auto.use_tolls.
-// It is only called when the driver asks for a toll-free route.
+// It is only called for a ride whose rider asked to avoid tolls.
 export const VALHALLA_URL = clean(env.VITE_VALHALLA_URL || "https://valhalla1.openstreetmap.de");
 
 // The ecash mint a driver is paid at until they choose another in Account. A mint holds the money behind
