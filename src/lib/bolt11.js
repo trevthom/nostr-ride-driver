@@ -17,6 +17,7 @@ const TIMESTAMP_WORDS = 7;
 export function paymentHash(pr) {
   try {
     const inv = String(pr || "").trim().toLowerCase().replace(/^lightning:/, "");
+    if (inv.length > 2000) return null; // a real invoice is under ~1 KB; anything larger is not one
     const { words } = bech32.decode(inv, false);
     let i = TIMESTAMP_WORDS;
     const end = words.length - SIGNATURE_WORDS;

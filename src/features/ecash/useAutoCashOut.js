@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
 import { useApp } from "../../state/AppContext.jsx";
 import { requestInvoice } from "../../lib/lnurl.js";
 import { getAutoCashOut, autoCashOutDue } from "../../lib/autocashout.js";
-import { getCashOutTo, cashOutState, onCashOutToChange, adoptProfileAddress } from "../../lib/cashoutto.js";
+import { getCashOutPin, cashOutState, onCashOutToChange } from "../../lib/cashoutto.js";
 import { moneyText } from "../../ui/Money.jsx";
 
 export const AUTO_EVENT = "nostrride-autocashout";
@@ -33,11 +33,16 @@ export function useAutoCashOut({ locked = false } = {}) {
       const { locked: busy, user: u, priceFor: price, btcPrice: shown, pushNotice: notify } = latest.current;
       const choice = getAutoCashOut(u.publicKey);
       if (!choice) return;
-      const to = adoptProfileAddress(u.publicKey, u.lud16); // the pinned address; a device with none takes the profile's
-      const st = cashOutState({ profile: u.lud16, pinned: to });
-      if (st === "changed" || !to) {
-        // The address was changed elsewhere (or there is none): no money moves until the person decides (Account → Money).
-        if (!paused.current) { paused.current = true; if (st === "changed") notify("Your cash out location was changed outside this device. Automatic cash out is paused. Open Account → Money to decide."); }
+      const pin = getCashOutPin(u.publicKey);
+      const to = pin.address; // only a pin the person confirmed on this device; the profile is never followed
+      const st = cashOutState({ profile: u.lud16, pinned: to, confirmed: pin.confirmed });
+      if (st !== "ok" || !to) {
+        // A changed address, or one this device has not confirmed yet: no money moves until the person decides (Account → Money).
+        if (!paused.current) {
+          paused.current = true;
+          if (st === "changed") notify("Your cash out location was changed outside this device. Automatic cash out is paused. Open Account → Money to decide.");
+          else if (st === "unconfirmed" && to) notify("Automatic cash out is paused until you confirm your cash out location in Account → Money.");
+        }
         return;
       }
       paused.current = false;

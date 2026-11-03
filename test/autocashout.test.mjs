@@ -49,20 +49,31 @@ console.log("autocashout tests ok");
   const B = await import(`${R}/lib/backup.js`);
   const pk = "ab".repeat(32);
   assert.equal(C.getCashOutTo(pk), "", "nothing is pinned at first");
+  assert.deepEqual(C.getCashOutPin(pk), { address: "", confirmed: false });
   assert.equal(C.cashOutState({ profile: "", pinned: "" }), "none");
-  assert.equal(C.cashOutState({ profile: "Me@Wallet.com", pinned: "" }), "unconfirmed", "a profile address with no pin is the state in which the device adopts it (adoptProfileAddress)");
-  // Nobody is asked to confirm an address: a device with no pin takes the profile's, and a device with a pin keeps it.
-  assert.equal(C.adoptProfileAddress(pk, "  Me@Wallet.com "), "me@wallet.com", "no pin yet: the profile's address is adopted");
-  assert.equal(C.getCashOutTo(pk), "me@wallet.com");
-  assert.equal(C.adoptProfileAddress(pk, "thief@evil.com"), "me@wallet.com", "a pin is never replaced by the profile");
-  assert.equal(C.getCashOutTo(pk), "me@wallet.com");
-  C.setCashOutTo(pk, "");
-  assert.equal(C.adoptProfileAddress(pk, ""), "", "an empty profile address pins nothing");
+  assert.equal(C.cashOutState({ profile: "Me@Wallet.com", pinned: "" }), "unconfirmed");
+
+  // A profile address is only SUGGESTED: it never becomes the pin by itself (a leaked nsec must not move money).
+  assert.equal(C.suggestCashOutTo(pk, "  Me@Wallet.com "), "me@wallet.com");
+  assert.equal(C.getCashOutTo(pk), "", "the suggestion did not pin anything");
+  assert.equal(C.suggestCashOutTo(pk, "https://evil.example"), "", "only a Lightning address is suggested");
+
+  // The person's action pins it, and a pin is never replaced by the profile.
   C.setCashOutTo(pk, "  Me@Wallet.com ");
-  assert.equal(C.getCashOutTo(pk), "me@wallet.com", "kept in one clean form");
-  assert.equal(C.cashOutState({ profile: "me@wallet.com", pinned: C.getCashOutTo(pk) }), "ok");
-  assert.equal(C.cashOutState({ profile: "", pinned: "me@wallet.com" }), "ok", "a profile address cleared elsewhere does not stop cash outs to the confirmed one");
-  assert.equal(C.cashOutState({ profile: "thief@evil.com", pinned: "me@wallet.com" }), "changed", "a profile changed elsewhere is not followed");
+  assert.deepEqual(C.getCashOutPin(pk), { address: "me@wallet.com", confirmed: true }, "kept in one clean form, confirmed");
+  assert.equal(C.suggestCashOutTo(pk, "thief@evil.com"), "", "a pin is never replaced by the profile");
+  assert.equal(C.getCashOutTo(pk), "me@wallet.com");
+  assert.equal(C.cashOutState({ profile: "me@wallet.com", pinned: C.getCashOutTo(pk), confirmed: true }), "ok");
+  assert.equal(C.cashOutState({ profile: "", pinned: "me@wallet.com", confirmed: true }), "ok", "a profile address cleared elsewhere does not stop cash outs to the confirmed one");
+  assert.equal(C.cashOutState({ profile: "thief@evil.com", pinned: "me@wallet.com", confirmed: true }), "changed", "a profile changed elsewhere is not followed");
+
+  // A pin saved by an older version is a bare string and may have been adopted from a profile: it is asked about once.
+  globalThis.localStorage.setItem("nostrride_cashoutTo_" + pk.slice(0, 16), JSON.stringify("old@wallet.com"));
+  assert.deepEqual(C.getCashOutPin(pk), { address: "old@wallet.com", confirmed: false });
+  assert.equal(C.cashOutState({ profile: "old@wallet.com", pinned: C.getCashOutTo(pk), confirmed: false }), "unconfirmed", "an older pin is confirmed once");
+  C.setCashOutTo(pk, "old@wallet.com");
+  assert.deepEqual(C.getCashOutPin(pk), { address: "old@wallet.com", confirmed: true });
+
   let heard = 0;
   const off = C.onCashOutToChange(() => heard++);
   C.setCashOutTo(pk, "new@wallet.com");

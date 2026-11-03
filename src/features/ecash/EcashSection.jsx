@@ -9,7 +9,7 @@
 //    • back up the wallet as tokens (ecash is cash: whoever holds a token owns it)
 //    (the 12-word recovery phrase that brings the ecash back on a new phone is its own Account part: RecoverySection.jsx)
 //    • Cash out (a tap) in both apps, and "Automatically cash out at: $" under the cash out location (AutoCashOutField, runs in useAutoCashOut). Both send to the cash out address PINNED
-//      on this device (lib/cashoutto.js). Nothing asks the person to confirm an address.
+//      on this device (lib/cashoutto.js). A pin is only ever written by the person: the profile's address is confirmed on this device first (CashOutConfirm).
 //    • Send ecash (SendEcash): a token for another ecash wallet, or a Lightning invoice / address
 //    • Disconnect ecash from this device: the coins and the recovery phrase are erased HERE (nothing is swapped); the money stays at the mint and
 //      comes back with the 12 words.
@@ -20,7 +20,7 @@
 import { useState } from "react";
 import { useApp } from "../../state/AppContext.jsx";
 import { IS_DRIVER_APP } from "../../config/app.js";
-import { adoptProfileAddress } from "../../lib/cashoutto.js";
+import { getCashOutPin } from "../../lib/cashoutto.js";
 import { SectionLabel, ConfirmDialog, inputCls } from "../../ui/Parts.jsx";
 import Button from "../../ui/Button.jsx";
 import Icon from "../../ui/Icon.jsx";
@@ -44,7 +44,7 @@ export default function EcashSection({ locked = false, children = null }) {
   const [busy, setBusy] = useState("");
   const [backup, setBackup] = useState("");
   const [askOff, setAskOff] = useState(false);
-  const { pinned } = useCashOutTo();
+  const { pinned, confirmed } = useCashOutTo();
   const draftUrl = cleanMintUrl(draft);
   const balances = ecash ? ecash.balances() : {};
   const total = ecash ? ecash.total() : 0;
@@ -80,11 +80,12 @@ export default function EcashSection({ locked = false, children = null }) {
     setBusy("");
   };
 
-  // Cash out (a tap): everything held at each mint goes to the address pinned on this device. A device with no pin takes the profile's address; nobody is asked.
-  // With no address at all there is nothing to send; the standing line below says where to set one.
+  // Cash out (a tap): everything held at each mint goes to the address CONFIRMED on this device. The profile's address is
+  // only offered for confirmation (CashOutConfirm); it is never used here. With no confirmed address, nothing is sent.
   const tapCashOut = async () => {
-    const to = adoptProfileAddress(user.publicKey, user.lud16);
-    if (!to) return;
+    const pin = getCashOutPin(user.publicKey);
+    if (!pin.address || !pin.confirmed) return setMsg("Confirm your cash out location below before cashing out.");
+    const to = pin.address;
     setBusy("out");
     setMsg("");
     let sent = 0, fee = 0;
@@ -149,9 +150,10 @@ export default function EcashSection({ locked = false, children = null }) {
             <div className="flex gap-2 mt-4">
               <Button size="md" onClick={() => setAdding(true)}><Icon name="zap" size={16} /> Add funds</Button>
               <Button size="md" variant="outline" onClick={() => setSending(true)} disabled={locked || total <= 0}>Send</Button>
-              <Button size="md" variant="outline" onClick={tapCashOut} loading={busy === "out"} disabled={locked || total <= 0}>Cash out</Button>
+              <Button size="md" variant="outline" onClick={tapCashOut} loading={busy === "out"} disabled={locked || total <= 0 || !pinned || !confirmed}>Cash out</Button>
             </div>
-            {total > 0 && !pinned && !user.lud16 && <p className="text-xs text-amber-700 mt-2">Set a cash out location (a Lightning address) below to cash out.</p>}
+            {total > 0 && !pinned && <p className="text-xs text-amber-700 mt-2">Set a cash out location (a Lightning address) below to cash out.</p>}
+            {total > 0 && pinned && !confirmed && <p className="text-xs text-amber-700 mt-2">Confirm your cash out location below before you cash out.</p>}
             {locked && <p className="text-xs text-neutral-500 mt-2">Cash out and sending are paused while a ride is running.</p>}
           </div>
 

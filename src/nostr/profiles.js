@@ -29,9 +29,13 @@ export function getMetadata(pubkey) {
 // the shape the screens render (a non-string name or an object plate
 // would otherwise crash React).
 const str = (v) => (typeof v === "string" || typeof v === "number" ? String(v) : "");
-// The extra vehicle photos: at most 2 more, only small embedded images (a remote address would tell its host who looked).
-const MORE_PHOTO_MAX = 40000;
-const morePhotos = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.startsWith("data:image/") && x.length <= MORE_PHOTO_MAX).slice(0, 2) : []);
+// Photos come from an untrusted profile and are drawn by every viewer. Only small embedded images are accepted: a remote
+// address would make the viewer's browser contact a server the other person chose, telling it the viewer's IP address and
+// when they looked (a tracking pixel). The face photo and the vehicle photos follow the same rule.
+const PHOTO_MAX = 40000;
+const PHOTO_RE = /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/=\s]+$/;
+const photo = (v) => (typeof v === "string" && v.length <= PHOTO_MAX && PHOTO_RE.test(v) ? v : "");
+const morePhotos = (v) => (Array.isArray(v) ? v.filter((x) => photo(x)).slice(0, 2) : []);
 
 export function getProfile(pubkey) {
   const meta = getMetadata(pubkey);
@@ -42,13 +46,13 @@ export function getProfile(pubkey) {
     comm: (Array.isArray(meta.communication) ? meta.communication : [])
       .filter((c) => c && typeof c === "object")
       .map((c) => ({ platform: str(c.platform), handle: str(c.handle) })),
-    picture: str(meta.picture),
+    picture: photo(meta.picture),
     lud16: str(meta.lud16).trim(), // Lightning address: where riders pay this user
     rates: normalizeRates(meta.rates), // the driver's own "typical fare" rates, or null
     stats: statsOf(meta), // self-reported totals (miles driven), or null
     gender: meta.gender === "male" || meta.gender === "female" ? meta.gender : "", // optional, self-declared
     vehicle: v && {
-      picture: str(v.picture),
+      picture: photo(v.picture),
       morePictures: morePhotos(v.morePictures),
       plateState: str(v.plateState),
       plateNumber: str(v.plateNumber),

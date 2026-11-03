@@ -38,6 +38,7 @@ export async function resolveAddress(address) {
 // The amount a BOLT11 invoice asks for, in millisats (null if it has none).
 export function invoiceAmountMsat(pr) {
   const inv = String(pr || "").trim().toLowerCase().replace(/^lightning:/, "");
+  if (inv.length > 2000) return null; // a real invoice is under ~1 KB; anything larger is not one
   const sep = inv.lastIndexOf("1");
   const m = /^ln(?:bcrt|bc|tbs|tb|sb)(\d+)([munp]?)$/.exec(inv.slice(0, sep));
   if (!m) return null;

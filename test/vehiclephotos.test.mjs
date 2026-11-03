@@ -48,6 +48,15 @@ assert.deepEqual(getProfile(hostile.publicKey).vehicle.morePictures, [img(5), im
 pub(K.METADATA, { name: "Bad2", vehicle: { morePictures: { a: 1 } } }, hostile);
 assert.deepEqual(getProfile(hostile.publicKey).vehicle.morePictures, []);
 
+// A remote photo would make the viewer's browser contact a server the other person chose (IP address, viewing time):
+// only small embedded images are kept, for the face photo and the vehicle photo alike.
+pub(K.METADATA, { name: "RemoteFace", picture: "https://tracker.example/face.png" }, hostile);
+assert.equal(getProfile(hostile.publicKey).picture, "", "a remote face photo is dropped");
+pub(K.METADATA, { name: "RemoteCar", vehicle: { picture: "https://tracker.example/car.png" } }, hostile);
+assert.equal(getProfile(hostile.publicKey).vehicle.picture, "", "a remote vehicle photo is dropped");
+pub(K.METADATA, { name: "Embedded", picture: img(9) }, hostile);
+assert.equal(getProfile(hostile.publicKey).picture, img(9), "an embedded face photo is kept");
+
 // The profile event stays under 64 KB (many relays refuse more): face photo 20 KB + three vehicle photos of at most 12 KB.
 const face = "data:image/jpeg;base64," + "f".repeat(20000 - 23);
 const big = (n) => "data:image/jpeg;base64," + String(n).repeat(12000 - 23);
